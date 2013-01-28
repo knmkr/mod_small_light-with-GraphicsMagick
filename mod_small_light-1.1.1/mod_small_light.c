@@ -215,6 +215,7 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "parse pattern or engine in uri. done");
 
         // set function.
+        // TODO: add GRAPHICSMAGICK
         if (strcmp(engine, SMALL_LIGHT_ENGINE_IMLIB2) == 0) {
             ctx->init_func = (SMALL_LIGHT_FILTER_INIT)small_light_filter_imlib2_init;
             ctx->receive_data_func = (SMALL_LIGHT_FILTER_RECEIVE_DATA)small_light_filter_imlib2_receive_data;
