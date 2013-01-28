@@ -1,0 +1,15 @@
+syntax: glob
+.DS_Store
+*~
+\#*
+.\#*
+*.o
+*.lo
+*.slo
+*.la
+*.log
+*.a
+*.lai
+*.so
+Makefile
+config.status
