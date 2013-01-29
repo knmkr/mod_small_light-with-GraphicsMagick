@@ -25,9 +25,6 @@ typedef struct {
 /*
 ** functions.
 */
-/* static void small_light_filter_graphicsmagick_output_data_init(void) */
-/* { */
-/* } */
 
 static void small_light_filter_graphicsmagick_output_data_fini(const small_light_module_ctx_t *ctx)
 {
@@ -41,7 +38,7 @@ static void small_light_filter_graphicsmagick_output_data_fini(const small_light
     {
         DestroyMagickWand(lctx->wand);
         lctx->wand = NULL;
-        DestroyMagick();  // MagickWandTerminus();
+        DestroyMagick();
     }
 }
 
@@ -90,10 +87,9 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "small_light_filter_graphicsmagick_output_data");
 
     request_rec *r = f->r;
-    small_light_module_ctx_t* ctx = (small_light_module_ctx_t*)v_ctx;  //
-    small_light_module_graphicsmagick_ctx_t *lctx = ctx->lctx;  //
+    small_light_module_ctx_t* ctx = (small_light_module_ctx_t*)v_ctx;
+    small_light_module_graphicsmagick_ctx_t *lctx = ctx->lctx;
     struct timeval t2, t21, t22, t23, t3;
-    // MagickBooleanType status = MagickFalse;
     MagickPassFail status = MagickPass;
 
     // check data received.
@@ -296,9 +292,9 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     const char *sled_image;
     size_t sled_image_size;
 
-    const unsigned long DST_WIDTH = 200;
-    const unsigned long DST_HEIGHT = 200;
-    status = MagickResizeImage(lctx->wand, DST_WIDTH, DST_HEIGHT,
+    /* const unsigned long DST_WIDTH = 200; */
+    /* const unsigned long DST_HEIGHT = 200; */
+    status = MagickResizeImage(lctx->wand, (long)sz.dw, (long)sz.dh,
                                (FilterTypes)LanczosFilter, (double)1.0);
 
     canvas_buff = MagickWriteImageBlob(lctx->wand, &sled_image_size);
@@ -308,6 +304,10 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     if (status == MagickFail)
       {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickResizeImage Failed");
+      }
+    else
+      {
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickResizeImage Passed!");
       }
 
 

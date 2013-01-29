@@ -543,6 +543,7 @@ apr_status_t small_light_receive_data(
     return APR_SUCCESS;
 }
 
+//
 void small_light_calc_image_size(
     small_light_image_size_t *sz,
     request_rec *r,
