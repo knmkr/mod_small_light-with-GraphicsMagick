@@ -225,6 +225,7 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
             ctx->init_func = (SMALL_LIGHT_FILTER_INIT)small_light_filter_graphicsmagick_init;
             ctx->receive_data_func = (SMALL_LIGHT_FILTER_RECEIVE_DATA)small_light_filter_graphicsmagick_receive_data;
             ctx->output_data_func = (SMALL_LIGHT_FILTER_OUTPUT_DATA)small_light_filter_graphicsmagick_output_data;
+            ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "GRAPHICSMAGICK choosed");
         }
         if (ctx->init_func == NULL) {
             ctx->init_func = (SMALL_LIGHT_FILTER_INIT)small_light_filter_dummy_init;

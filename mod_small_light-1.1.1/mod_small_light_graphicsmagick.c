@@ -7,17 +7,14 @@
 
 small_light_filter_prototype(graphicsmagick);
 
-#ifndef ENABLE_WAND
+#ifndef ENABLE_GRAPHICSMAGICK_WAND
 small_light_filter_dummy_template(graphicsmagick);
 #else
 
 /*
 ** defines.
 */
-#include "wand/MagickWand.h"
-
-// TODO: add Graphicsmagik-Wand's .h ok?
-#include "wand/magick_wand.h"
+#include <wand/magick_wand.h>
 
 typedef struct {
     unsigned char *image;
@@ -28,11 +25,9 @@ typedef struct {
 /*
 ** functions.
 */
-static void small_light_filter_graphicsmagick_output_data_init(void)
-{
-    /* MagickWandGenesis();  // init MagickWand (ImageMagick) */
-
-}
+/* static void small_light_filter_graphicsmagick_output_data_init(void) */
+/* { */
+/* } */
 
 static void small_light_filter_graphicsmagick_output_data_fini(const small_light_module_ctx_t *ctx)
 {
@@ -46,7 +41,7 @@ static void small_light_filter_graphicsmagick_output_data_fini(const small_light
     {
         DestroyMagickWand(lctx->wand);
         lctx->wand = NULL;
-        MagickWandTerminus();  // release MagickWand (ImageMagick)
+        DestroyMagick();  // MagickWandTerminus();
     }
 }
 
@@ -114,7 +109,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     small_light_calc_image_size(&sz, r, ctx, 10000.0, 10000.0);  // ?
 
     // init wand (Allocate Wand handle)
-    small_light_filter_graphicsmagick_output_data_init();
+    InitializeMagick("/opt/local/apache2/bin/");  //  InitializeMagick(*argv);
     lctx->wand = NewMagickWand();  // same in Image&Graphics Magick
 
     // set the size of wand.
@@ -184,36 +179,36 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     if (sz.cw > 0.0 && sz.ch > 0.0) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "NewMagickWand()");
         MagickWand *canvas_wand = NewMagickWand();
-        PixelWand *canvas_color = NewPixelWand();  // PixelWand *wand
-        PixelSetRed(canvas_color, sz.cc.r / 255.0);
-        PixelSetGreen(canvas_color, sz.cc.g / 255.0);
-        PixelSetBlue(canvas_color, sz.cc.b / 255.0);
-        // PixelSetAlpha(canvas_color, sz.cc.a / 255.0);
-        PixelSetOpacity(canvas_color, sz.cc.a / 255.0);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-            "MagickNewImage(canvas_wand, %f, %f, bgcolor)", sz.cw, sz.ch);
-        status = MagickNewImage(canvas_wand, sz.cw, sz.ch, canvas_color);
-        DestroyPixelWand(canvas_color);
-        if (status == MagickFail) {
-            small_light_filter_graphicsmagick_output_data_fini(ctx);
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
-                "MagickNewImage(canvas_wand, %f, %f, bgcolor) failed", sz.cw, sz.ch);
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
-            return APR_EGENERAL;
-        }
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-            "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f)",
-            sz.dx, sz.dy);
-        status = MagickCompositeImage(canvas_wand, lctx->wand, AtopCompositeOp, sz.dx, sz.dy);
-        if (status == MagickFail) {
-            small_light_filter_graphicsmagick_output_data_fini(ctx);
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
-                "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f) failed",
-                sz.dx, sz.dy);
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
-            return APR_EGENERAL;
-        }
-        DestroyMagickWand(lctx->wand);
+        /* PixelWand *canvas_color = NewPixelWand();  // PixelWand *wand */
+        /* PixelSetRed(canvas_color, sz.cc.r / 255.0); */
+        /* PixelSetGreen(canvas_color, sz.cc.g / 255.0); */
+        /* PixelSetBlue(canvas_color, sz.cc.b / 255.0); */
+        /* PixelSetOpacity(canvas_color, sz.cc.a / 255.0);  // PixelSetAlpha(canvas_color, sz.cc.a / 255.0); */
+        /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
+        /*     "MagickNewImage(canvas_wand, %f, %f, bgcolor)", sz.cw, sz.ch); */
+        /* status = MagickNewImage(canvas_wand, sz.cw, sz.ch, canvas_color); */
+        /* DestroyPixelWand(canvas_color); */
+        /* if (status == MagickFail) { */
+        /*     small_light_filter_graphicsmagick_output_data_fini(ctx); */
+        /*     ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, */
+        /*         "MagickNewImage(canvas_wand, %f, %f, bgcolor) failed", sz.cw, sz.ch); */
+        /*     r->status = HTTP_INTERNAL_SERVER_ERROR; */
+        /*     return APR_EGENERAL; */
+        /* } */
+
+        /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
+        /*     "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f)", */
+        /*     sz.dx, sz.dy); */
+        /* status = MagickCompositeImage(canvas_wand, lctx->wand, AtopCompositeOp, sz.dx, sz.dy); */
+        /* if (status == MagickFail) { */
+        /*     small_light_filter_graphicsmagick_output_data_fini(ctx); */
+        /*     ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, */
+        /*         "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f) failed", */
+        /*         sz.dx, sz.dy); */
+        /*     r->status = HTTP_INTERNAL_SERVER_ERROR; */
+        /*     return APR_EGENERAL; */
+        /* } */
+        /* DestroyMagickWand(lctx->wand); */
         lctx->wand = canvas_wand;
     }
 
@@ -291,19 +286,10 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     /*     MagickSetImageCompressionQuality(lctx->wand, q); */
     /* } */
 
-    /* // set file format like jpg, bmp,... */
-    /* char *of = (char *)apr_table_get(ctx->prm, "of"); */
-    /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
-    /*     "MagickSetFormat(wand, '%s')", of); */
-    /* MagickSetFormat(lctx->wand, of); */
-
-    // get small_lighted image as binary.
-    /* unsigned char *canvas_buff; */
-    /* const char *sled_image; */
-    /* size_t sled_image_size; */
-    /* canvas_buff = MagickGetImageBlob(lctx->wand, &sled_image_size); */
-    /* sled_image = (const char *)apr_pmemdup(r->pool, canvas_buff, sled_image_size); */
-    /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sled_image_size = %d", sled_image_size); */
+    // set file format like jpg, bmp,...
+    char *of = (char *)apr_table_get(ctx->prm, "of");
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetFormat(wand, '%s')", of);
+    MagickSetFormat(lctx->wand, of);
 
     // get small_lighted image as binary.
     unsigned char *canvas_buff;
@@ -318,10 +304,11 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     canvas_buff = MagickWriteImageBlob(lctx->wand, &sled_image_size);
     sled_image = (const char *)apr_pmemdup(r->pool, canvas_buff, sled_image_size);
 
-    /* if (status == MagickFail) */
-    /*   { */
-    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickResizeImage Failed"); */
-    /*   } */
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sled_image_size = %d", sled_image_size);
+    if (status == MagickFail)
+      {
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickResizeImage Failed");
+      }
 
 
     // free buffer and wand.
