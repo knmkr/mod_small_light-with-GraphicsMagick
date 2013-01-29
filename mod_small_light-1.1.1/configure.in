@@ -88,6 +88,43 @@ if test "$ENABLE_WAND" != "no"; then
     AC_SUBST(CFLAGS_WAND)
 fi
 
+# GraphicsMagick
+AC_MSG_CHECKING(whether to enable GraphicsMagickWand support)
+AC_ARG_WITH(
+    GraphicsMagickWand,
+    AC_HELP_STRING([--without-GraphicsMagickWand], [disable GraphicsMagickWand support]),
+    ENABLE_GRAPHICSMAGICK_WAND=$withval,
+    ENABLE_GRAPHICSMAGICK_WAND="auto"
+)
+AC_MSG_RESULT($ENABLE_GRAPHICSMAGICK_WAND)
+
+if test "$ENABLE_GRAPHICSMAGICK_WAND" != "no"; then
+    AC_ARG_WITH(
+        GraphicsMagickWand-config,
+        AC_HELP_STRING([--with-GraphicsMagickWand-config=FILE], [location of the GraphicsMagickWand-config program]),
+        [if test -x $withval; then
+            GRAPHICSMAGICK_WAND_CONFIG=$withval
+        else
+            AC_MSG_ERROR([GraphicsMagickWand-config not found])
+        fi]
+    )
+    if test "$GRAPHICSMAGICK_WAND_CONFIG" = ""; then
+        AC_PATH_PROG(
+            GRAPHICSMAGICK_WAND_CONFIG,
+            GraphicsMagickWand-config,
+            [],
+            /bin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+        )
+        if test "$GRAPHICSMAGICK_WAND_CONFIG" = ""; then
+            AC_MSG_ERROR([GraphicsMagickWand not found])
+        fi
+    fi
+    AC_SUBST(GRAPHICSMAGICK_WAND_CONFIG)
+    CFLAGS_GRAPHICSMAGICK_WAND="-DENABLE_GRAPHICSMAGICK_WAND"
+    AC_SUBST(CFLAGS_GRAPHICSMAGICK_WAND)
+fi
+
+
 # libjpeg
 AC_MSG_CHECKING(whether to enable jpeg support)
 AC_ARG_WITH(
@@ -122,4 +159,3 @@ if test "$ENABLE_JPEG" != "no"; then
 fi
 
 AC_OUTPUT(Makefile)
-

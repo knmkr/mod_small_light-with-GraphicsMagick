@@ -16,7 +16,8 @@ small_light_filter_dummy_template(graphicsmagick);
 */
 #include "wand/MagickWand.h"
 
-// TODO: add Graphicsmagik-Wand's .h
+// TODO: add Graphicsmagik-Wand's .h ok?
+#include "wand/magick_wand.h"
 
 typedef struct {
     unsigned char *image;
@@ -29,7 +30,8 @@ typedef struct {
 */
 static void small_light_filter_graphicsmagick_output_data_init(void)
 {
-    MagickWandGenesis();
+    /* MagickWandGenesis();  // init MagickWand (ImageMagick) */
+
 }
 
 static void small_light_filter_graphicsmagick_output_data_fini(const small_light_module_ctx_t *ctx)
@@ -44,7 +46,7 @@ static void small_light_filter_graphicsmagick_output_data_fini(const small_light
     {
         DestroyMagickWand(lctx->wand);
         lctx->wand = NULL;
-        MagickWandTerminus();
+        MagickWandTerminus();  // release MagickWand (ImageMagick)
     }
 }
 
@@ -93,10 +95,11 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "small_light_filter_graphicsmagick_output_data");
 
     request_rec *r = f->r;
-    small_light_module_ctx_t* ctx = (small_light_module_ctx_t*)v_ctx;
-    small_light_module_graphicsmagick_ctx_t *lctx = ctx->lctx;
+    small_light_module_ctx_t* ctx = (small_light_module_ctx_t*)v_ctx;  //
+    small_light_module_graphicsmagick_ctx_t *lctx = ctx->lctx;  //
     struct timeval t2, t21, t22, t23, t3;
-    MagickBooleanType status = MagickFalse;
+    // MagickBooleanType status = MagickFalse;
+    MagickPassFail status = MagickPass;
 
     // check data received.
     if (lctx->image == NULL) {
@@ -108,25 +111,29 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     // start image modifing.
     gettimeofday(&t2, NULL);
     small_light_image_size_t sz;
-    small_light_calc_image_size(&sz, r, ctx, 10000.0, 10000.0);
+    small_light_calc_image_size(&sz, r, ctx, 10000.0, 10000.0);  // ?
 
-    // init wand
+    // init wand (Allocate Wand handle)
     small_light_filter_graphicsmagick_output_data_init();
-    lctx->wand = NewMagickWand();
+    lctx->wand = NewMagickWand();  // same in Image&Graphics Magick
 
-    // prepare.
+    // set the size of wand.
+    // TODO: optimize jpeg:size
     if (sz.jpeghint_flg != 0) {
         char *jpeg_size_opt = (char *)apr_psprintf(r->pool, "%dx%d",
-            (int)sz.dw, (int)sz.dh);
-        MagickSetOption(lctx->wand, "jpeg:size", jpeg_size_opt);
+                                                   (int)sz.dw, (int)sz.dh);
+        /* MagickSetOption(lctx->wand, "jpeg:size", jpeg_size_opt); */
+
+        MagickSetSize(lctx->wand, (long)sz.dw, (long)sz.dh);
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetOption(jpeg:size, %s)", jpeg_size_opt);
     }
 
-    // load image.
+    // load image from memory (not file).
     gettimeofday(&t21, NULL);
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickReadImageBlob");
-    status = MagickReadImageBlob(lctx->wand, (void *)lctx->image, lctx->image_len);
-    if (status == MagickFalse) {
+
+    status = MagickReadImageBlob(lctx->wand, (void *)lctx->image, lctx->image_len);  // same in Image&Graphics Magick
+    if (status == MagickFail) {
         small_light_filter_graphicsmagick_output_data_fini(ctx);
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "couldn't read image");
         r->status = HTTP_INTERNAL_SERVER_ERROR;
@@ -135,8 +142,8 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
 
     // calc size.
     gettimeofday(&t22, NULL);
-    double iw = (double)MagickGetImageWidth(lctx->wand);
-    double ih = (double)MagickGetImageHeight(lctx->wand);
+    double iw = (double)MagickGetImageWidth(lctx->wand);   // same in Image&Graphics Magick
+    double ih = (double)MagickGetImageHeight(lctx->wand);  // same in Image&Graphics Magick
     small_light_calc_image_size(&sz, r, ctx, iw, ih);
 
     // pass through.
@@ -149,7 +156,9 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     }
 
     // crop, scale.
-    status = MagickTrue;
+    // maybe same in Image&Graphics Magick
+    // status = MagickTrue;
+    status = MagickPass;
     if (sz.scale_flg != 0) {
         char *crop_geo = (char *)apr_psprintf(r->pool, "%f!x%f!+%f+%f",
             sz.sw, sz.sh, sz.sx, sz.sy);
@@ -175,16 +184,17 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     if (sz.cw > 0.0 && sz.ch > 0.0) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "NewMagickWand()");
         MagickWand *canvas_wand = NewMagickWand();
-        PixelWand *canvas_color = NewPixelWand();
+        PixelWand *canvas_color = NewPixelWand();  // PixelWand *wand
         PixelSetRed(canvas_color, sz.cc.r / 255.0);
         PixelSetGreen(canvas_color, sz.cc.g / 255.0);
         PixelSetBlue(canvas_color, sz.cc.b / 255.0);
-        PixelSetAlpha(canvas_color, sz.cc.a / 255.0);
+        // PixelSetAlpha(canvas_color, sz.cc.a / 255.0);
+        PixelSetOpacity(canvas_color, sz.cc.a / 255.0);
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
             "MagickNewImage(canvas_wand, %f, %f, bgcolor)", sz.cw, sz.ch);
         status = MagickNewImage(canvas_wand, sz.cw, sz.ch, canvas_color);
         DestroyPixelWand(canvas_color);
-        if (status == MagickFalse) {
+        if (status == MagickFail) {
             small_light_filter_graphicsmagick_output_data_fini(ctx);
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
                 "MagickNewImage(canvas_wand, %f, %f, bgcolor) failed", sz.cw, sz.ch);
@@ -195,7 +205,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
             "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f)",
             sz.dx, sz.dy);
         status = MagickCompositeImage(canvas_wand, lctx->wand, AtopCompositeOp, sz.dx, sz.dy);
-        if (status == MagickFalse) {
+        if (status == MagickFail) {
             small_light_filter_graphicsmagick_output_data_fini(ctx);
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
                 "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f) failed",
@@ -272,24 +282,47 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     gettimeofday(&t23, NULL);
 
     // set params.
-    double q = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "q"));
-    if (q > 0.0) {
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-            "MagickSetImageComressionQualty(wand, %f)", q);
-        MagickSetImageCompressionQuality(lctx->wand, q);
-    }
-    char *of = (char *)apr_table_get(ctx->prm, "of");
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-        "MagickSetFormat(wand, '%s')", of);
-    MagickSetFormat(lctx->wand, of);
+    // TODO: JPEGCompression??
+    // * MagickSetImageCompression(MagickWand *wand, const CompressionType compression);
+    /* double q = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "q")); */
+    /* if (q > 0.0) { */
+    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
+    /*         "MagickSetImageComressionQualty(wand, %f)", q); */
+    /*     MagickSetImageCompressionQuality(lctx->wand, q); */
+    /* } */
+
+    /* // set file format like jpg, bmp,... */
+    /* char *of = (char *)apr_table_get(ctx->prm, "of"); */
+    /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
+    /*     "MagickSetFormat(wand, '%s')", of); */
+    /* MagickSetFormat(lctx->wand, of); */
+
+    // get small_lighted image as binary.
+    /* unsigned char *canvas_buff; */
+    /* const char *sled_image; */
+    /* size_t sled_image_size; */
+    /* canvas_buff = MagickGetImageBlob(lctx->wand, &sled_image_size); */
+    /* sled_image = (const char *)apr_pmemdup(r->pool, canvas_buff, sled_image_size); */
+    /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sled_image_size = %d", sled_image_size); */
 
     // get small_lighted image as binary.
     unsigned char *canvas_buff;
     const char *sled_image;
     size_t sled_image_size;
-    canvas_buff = MagickGetImageBlob(lctx->wand, &sled_image_size);
+
+    const unsigned long DST_WIDTH = 200;
+    const unsigned long DST_HEIGHT = 200;
+    status = MagickResizeImage(lctx->wand, DST_WIDTH, DST_HEIGHT,
+                               (FilterTypes)LanczosFilter, (double)1.0);
+
+    canvas_buff = MagickWriteImageBlob(lctx->wand, &sled_image_size);
     sled_image = (const char *)apr_pmemdup(r->pool, canvas_buff, sled_image_size);
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sled_image_size = %d", sled_image_size);
+
+    /* if (status == MagickFail) */
+    /*   { */
+    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickResizeImage Failed"); */
+    /*   } */
+
 
     // free buffer and wand.
     MagickRelinquishMemory(canvas_buff);

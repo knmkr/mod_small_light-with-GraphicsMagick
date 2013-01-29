@@ -12,8 +12,8 @@ int main(int argc,char **argv)
     // Parameters for resizing
     const unsigned long DST_WIDTH = 140;
     const unsigned long DST_HEIGHT = 140;
-    const FilterTypes DST_FILTERTYPE = LanczosFilter;
-    const double DST_BLUR = 1.0;
+    /* const FilterTypes DST_FILTERTYPE = LanczosFilter; */
+    /* const double DST_BLUR = 1.0; */
 
     if (argc != 3)
           {
@@ -36,13 +36,17 @@ int main(int argc,char **argv)
             status = MagickReadImage(magick_wand,infile);
           }
 
+    // Set the size of the magick wand
+    if (status == MagickPass)
+          {
+            status = MagickSetSize(magick_wand, (long)300, (long)300);
+          }
+
     // Resize image
     if (status == MagickPass)
           {
-            PixelWand *background;
-            background=NewPixelWand();
-            status = MagickResizeImage(magick_wand, DST_WIDTH, DST_HEIGHT, DST_FILTERTYPE, DST_BLUR);
-            DestroyPixelWand(background);
+            status = MagickResizeImage(magick_wand, DST_WIDTH, DST_HEIGHT,
+                                       (FilterTypes)LanczosFilter, (double)1.0);
           }
 
 
