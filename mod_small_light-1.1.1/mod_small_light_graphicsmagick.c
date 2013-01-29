@@ -16,6 +16,8 @@ small_light_filter_dummy_template(graphicsmagick);
 */
 #include "wand/MagickWand.h"
 
+// TODO: add Graphicsmagik-Wand's .h
+
 typedef struct {
     unsigned char *image;
     apr_size_t image_len;
@@ -205,67 +207,67 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         lctx->wand = canvas_wand;
     }
 
-    // effects.
-    char *unsharp = (char *)apr_table_get(ctx->prm, "unsharp");
-    if (unsharp) {
-        GeometryInfo geo;
-        ParseGeometry(unsharp, &geo);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-            "MagickUnsharpMaskImage(wand, %f, %f, %f, %f)",
-            geo.rho, geo.sigma, geo.xi, geo.psi);
-        status = MagickUnsharpMaskImage(lctx->wand, geo.rho, geo.sigma, geo.xi, geo.psi);
-        if (status == MagickFalse) {
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "unsharp failed");
-        }
-    }
+    /* // effects. */
+    /* char *unsharp = (char *)apr_table_get(ctx->prm, "unsharp"); */
+    /* if (unsharp) { */
+    /*     GeometryInfo geo; */
+    /*     ParseGeometry(unsharp, &geo); */
+    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
+    /*         "MagickUnsharpMaskImage(wand, %f, %f, %f, %f)", */
+    /*         geo.rho, geo.sigma, geo.xi, geo.psi); */
+    /*     status = MagickUnsharpMaskImage(lctx->wand, geo.rho, geo.sigma, geo.xi, geo.psi); */
+    /*     if (status == MagickFalse) { */
+    /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "unsharp failed"); */
+    /*     } */
+    /* } */
 
-    char *sharpen = (char *)apr_table_get(ctx->prm, "sharpen");
-    if (sharpen) {
-        GeometryInfo geo;
-        ParseGeometry(sharpen, &geo);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-            "MagickSharpenImage(wand, %f, %f)",
-            geo.rho, geo.sigma);
-        status = MagickSharpenImage(lctx->wand, geo.rho, geo.sigma);
-        if (status == MagickFalse) {
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "sharpen failed");
-        }
-    }
+    /* char *sharpen = (char *)apr_table_get(ctx->prm, "sharpen"); */
+    /* if (sharpen) { */
+    /*     GeometryInfo geo; */
+    /*     ParseGeometry(sharpen, &geo); */
+    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
+    /*         "MagickSharpenImage(wand, %f, %f)", */
+    /*         geo.rho, geo.sigma); */
+    /*     status = MagickSharpenImage(lctx->wand, geo.rho, geo.sigma); */
+    /*     if (status == MagickFalse) { */
+    /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "sharpen failed"); */
+    /*     } */
+    /* } */
 
-    char *blur = (char *)apr_table_get(ctx->prm, "blur");
-    if (blur) {
-        GeometryInfo geo;
-        ParseGeometry(blur, &geo);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-            "MagickBlurImage(wand, %f, %f)",
-            geo.rho, geo.sigma);
-        status = MagickBlurImage(lctx->wand, geo.rho, geo.sigma);
-        if (status == MagickFalse) {
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "blur failed");
-        }
-    }
+    /* char *blur = (char *)apr_table_get(ctx->prm, "blur"); */
+    /* if (blur) { */
+    /*     GeometryInfo geo; */
+    /*     ParseGeometry(blur, &geo); */
+    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
+    /*         "MagickBlurImage(wand, %f, %f)", */
+    /*         geo.rho, geo.sigma); */
+    /*     status = MagickBlurImage(lctx->wand, geo.rho, geo.sigma); */
+    /*     if (status == MagickFalse) { */
+    /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "blur failed"); */
+    /*     } */
+    /* } */
 
-    // border.
-    if (sz.bw > 0.0 || sz.bh > 0.0) {
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "draw border");
-        DrawingWand *border_wand = NewDrawingWand();
-        PixelWand *border_color;
-        border_color = NewPixelWand();
-        PixelSetRed(border_color, sz.bc.r / 255.0);
-        PixelSetGreen(border_color, sz.bc.g / 255.0);
-        PixelSetBlue(border_color, sz.bc.b / 255.0);
-        PixelSetAlpha(border_color, sz.bc.a / 255.0);
-        DrawSetFillColor(border_wand, border_color);
-        DrawSetStrokeColor(border_wand, border_color);
-        DrawSetStrokeWidth(border_wand, 1);
-        DrawRectangle(border_wand, 0, 0, sz.cw - 1, sz.bh - 1);
-        DrawRectangle(border_wand, 0, 0, sz.bw - 1, sz.ch - 1);
-        DrawRectangle(border_wand, 0, sz.ch - sz.bh, sz.cw - 1, sz.ch - 1);
-        DrawRectangle(border_wand, sz.cw - sz.bw, 0, sz.cw - 1, sz.ch - 1);
-        MagickDrawImage(lctx->wand, border_wand);
-        DestroyPixelWand(border_color);
-        DestroyDrawingWand(border_wand);
-    }
+    /* // border. */
+    /* if (sz.bw > 0.0 || sz.bh > 0.0) { */
+    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "draw border"); */
+    /*     DrawingWand *border_wand = NewDrawingWand(); */
+    /*     PixelWand *border_color; */
+    /*     border_color = NewPixelWand(); */
+    /*     PixelSetRed(border_color, sz.bc.r / 255.0); */
+    /*     PixelSetGreen(border_color, sz.bc.g / 255.0); */
+    /*     PixelSetBlue(border_color, sz.bc.b / 255.0); */
+    /*     PixelSetAlpha(border_color, sz.bc.a / 255.0); */
+    /*     DrawSetFillColor(border_wand, border_color); */
+    /*     DrawSetStrokeColor(border_wand, border_color); */
+    /*     DrawSetStrokeWidth(border_wand, 1); */
+    /*     DrawRectangle(border_wand, 0, 0, sz.cw - 1, sz.bh - 1); */
+    /*     DrawRectangle(border_wand, 0, 0, sz.bw - 1, sz.ch - 1); */
+    /*     DrawRectangle(border_wand, 0, sz.ch - sz.bh, sz.cw - 1, sz.ch - 1); */
+    /*     DrawRectangle(border_wand, sz.cw - sz.bw, 0, sz.cw - 1, sz.ch - 1); */
+    /*     MagickDrawImage(lctx->wand, border_wand); */
+    /*     DestroyPixelWand(border_color); */
+    /*     DestroyDrawingWand(border_wand); */
+    /* } */
 
     gettimeofday(&t23, NULL);
 

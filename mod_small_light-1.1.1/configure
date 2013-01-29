@@ -655,6 +655,8 @@ with_imlib2
 with_imlib2_config
 with_Wand
 with_Wand_config
+with_GraphicsMagickWand
+with_GraphicsMagickWand_config
 with_jpeg
 '
       ac_precious_vars='build_alias
@@ -1282,6 +1284,8 @@ Optional Packages:
                           location of the imlib2-config program
   --without-Wand          disable Wand support
   --with-Wand-config=FILE location of the Wand-config program
+  --without-GraphicsMagickWand          disable GraphicsMagickWand support
+  --with-GraphicsMagickWand-config=FILE location of the GraphicsMagickWand-config program
   --without-jpeg          disable jpeg support
 
 Some influential environment variables:
@@ -2972,6 +2976,89 @@ fi
 
 fi
 
+
+# GraphicsMagick
+# TODO : add GraphicsMagick
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable GraphicsMagickWand support" >&5
+$as_echo_n "checking whether to enable GraphicsMagickWand support... " >&6; }
+
+# Check whether --with-GraphicsMagickWand was given.
+if test "${with_GraphicsMagickWand+set}" = set; then :
+  withval=$with_GraphicsMagickWand; ENABLE_WAND=$withval
+else
+  ENABLE_WAND="auto"
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ENABLE_WAND" >&5
+$as_echo "$ENABLE_WAND" >&6; }
+
+if test "$ENABLE_WAND" != "no"; then
+
+# Check whether --with-GraphicsMagickWand-config was given.
+if test "${with_GraphicsMagickWand_config+set}" = set; then :
+  withval=$with_GraphicsMagickWand_config; if test -x $withval; then
+            GRAPHICSMAGICK_WAND_CONFIG=$withval
+        else
+            as_fn_error $? "GraphicsMagickWand-config not found" "$LINENO" 5
+        fi
+
+fi
+
+
+    if test "$GRAPHICSMAGICK_WAND_CONFIG" = ""; then
+        # Extract the first word of "GraphicsMagickWand-config", so it can be a program name with args.
+set dummy Wand-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_GRAPHICSMAGICK_WAND_CONFIG+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $GRAPHICSMAGICK_WAND_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_GRAPHICSMAGICK_WAND_CONFIG="$GRAPHICSMAGICK_WAND_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="/bin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+        "
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_GRAPHICSMAGICK_WAND_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+GRAPHICSMAGICK_WAND_CONFIG=$ac_cv_path_GRAPHICSMAGICK_WAND_CONFIG
+if test -n "$GRAPHICSMAGICK_WAND_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GRAPHICSMAGICK_WAND_CONFIG" >&5
+$as_echo "$GRAPHICSMAGICK_WAND_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+        if test "$GRAPHICSMAGICK_WAND_CONFIG" = ""; then
+            as_fn_error $? "Wand not found" "$LINENO" 5
+        fi
+    fi
+
+    CFLAGS_WAND="-DENABLE_WAND"
+
+fi
+
+
 # libjpeg
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable jpeg support" >&5
 $as_echo_n "checking whether to enable jpeg support... " >&6; }
@@ -4608,5 +4695,3 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
-
-
