@@ -42,6 +42,7 @@
 small_light_filter_prototype(dummy);
 small_light_filter_prototype(imlib2);
 small_light_filter_prototype(imagemagick);
+small_light_filter_prototype(graphicsmagick); //
 
 static const char small_light_filter_name[] = "SMALL_LIGHT";
 module AP_MODULE_DECLARE_DATA small_light_module;
@@ -155,15 +156,14 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
             return ap_pass_brigade(f->next, bb);
         }
 
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "will do something");
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "will do something");
 
         // initialize context.
         f->ctx = ctx = (small_light_module_ctx_t *)apr_pcalloc(r->pool, sizeof(small_light_module_ctx_t));
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "initialize context. done");
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "initialize context. done");
 
         // parse pattern or engine in uri.
         ap_log_rerror(APLOG_MARK, APLOG_INFO, 0, r, "uri=%s", r->uri);
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "uri=%s", r->uri);
         int res;
         char param_str[SMALL_LIGHT_PARAM_STR_MAX];
         res = small_light_parse_uri_param(r, param_str, r->unparsed_uri);
@@ -210,12 +210,9 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
         }
         engine = (char *)apr_table_get(ctx->prm, "e");
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "engine=%s", engine);
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "engine=%s", engine);
-
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "parse pattern or engine in uri. done");
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "parse pattern or engine in uri. done");
 
         // set function.
-        // TODO: add GRAPHICSMAGICK
         if (strcmp(engine, SMALL_LIGHT_ENGINE_IMLIB2) == 0) {
             ctx->init_func = (SMALL_LIGHT_FILTER_INIT)small_light_filter_imlib2_init;
             ctx->receive_data_func = (SMALL_LIGHT_FILTER_RECEIVE_DATA)small_light_filter_imlib2_receive_data;
@@ -224,6 +221,10 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
             ctx->init_func = (SMALL_LIGHT_FILTER_INIT)small_light_filter_imagemagick_init;
             ctx->receive_data_func = (SMALL_LIGHT_FILTER_RECEIVE_DATA)small_light_filter_imagemagick_receive_data;
             ctx->output_data_func = (SMALL_LIGHT_FILTER_OUTPUT_DATA)small_light_filter_imagemagick_output_data;
+        } else if (strcmp(engine, SMALL_LIGHT_ENGINE_GRAPHICSMAGICK) == 0) {
+            ctx->init_func = (SMALL_LIGHT_FILTER_INIT)small_light_filter_graphicsmagick_init;
+            ctx->receive_data_func = (SMALL_LIGHT_FILTER_RECEIVE_DATA)small_light_filter_graphicsmagick_receive_data;
+            ctx->output_data_func = (SMALL_LIGHT_FILTER_OUTPUT_DATA)small_light_filter_graphicsmagick_output_data;
         }
         if (ctx->init_func == NULL) {
             ctx->init_func = (SMALL_LIGHT_FILTER_INIT)small_light_filter_dummy_init;
@@ -233,12 +234,12 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "set function.  done");
 
         // init filter engine.
-        ctx->init_func(f, bb, ctx);
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "init filter engine.  done");
+        ctx->init_func(f, bb, ctx);  //
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "init filter engine.  done");
 
         // create bucket brigade.
         ctx->bb = apr_brigade_create(r->pool, f->c->bucket_alloc);
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "create bucket brigade.  done");
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "create bucket brigade.  done");
 
         gettimeofday(&ctx->t, NULL);
     }

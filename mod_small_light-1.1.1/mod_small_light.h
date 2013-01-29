@@ -19,7 +19,8 @@
 #define SMALL_LIGHT_ENGINE_DUMMY "dummy"
 #define SMALL_LIGHT_ENGINE_IMLIB2 "imlib2"
 #define SMALL_LIGHT_ENGINE_IMAGEMAGICK "imagemagick"
-#define SMALL_LIGHT_DEFAULT_ENGINE SMALL_LIGHT_ENGINE_IMLIB2
+#define SMALL_LIGHT_ENGINE_GRAPHICSMAGICK "graphicsmagick"
+#define SMALL_LIGHT_DEFAULT_ENGINE SMALL_LIGHT_ENGINE_IMLIB2  //
 #define SMALL_LIGHT_INT_INVALID_VALUE (INT_MAX)
 #define SMALL_LIGHT_INT_MIN_VALUE (INT_MIN + 1)
 #define SMALL_LIGHT_INT_MAX_VALUE (INT_MAX)
@@ -138,6 +139,7 @@ apr_status_t small_light_receive_data(
     const char *data,
     const apr_size_t data_len);
 
+//
 #define small_light_filter_prototype(name)\
 apr_status_t small_light_filter_##name##_init(\
     ap_filter_t *f,\
@@ -185,4 +187,3 @@ apr_status_t small_light_filter_##name##_output_data(\
 {\
     return small_light_filter_dummy_output_data(f, bb, v_ctx, e);\
 }
-

@@ -1,14 +1,14 @@
 /*
-**  mod_small_light_imagemagick.c -- imagemagick support
+**  mod_small_light_graphicsmagick.c -- graphicsmagick support
 */
 
 #include "mod_small_light.h"
 #include "mod_small_light_ext_jpeg.h"
 
-small_light_filter_prototype(imagemagick);
+small_light_filter_prototype(graphicsmagick);
 
 #ifndef ENABLE_WAND
-small_light_filter_dummy_template(imagemagick);
+small_light_filter_dummy_template(graphicsmagick);
 #else
 
 /*
@@ -20,19 +20,19 @@ typedef struct {
     unsigned char *image;
     apr_size_t image_len;
     MagickWand *wand;
-} small_light_module_imagemagick_ctx_t;
+} small_light_module_graphicsmagick_ctx_t;
 
 /*
 ** functions.
 */
-static void small_light_filter_imagemagick_output_data_init(void)
+static void small_light_filter_graphicsmagick_output_data_init(void)
 {
     MagickWandGenesis();
 }
 
-static void small_light_filter_imagemagick_output_data_fini(const small_light_module_ctx_t *ctx)
+static void small_light_filter_graphicsmagick_output_data_fini(const small_light_module_ctx_t *ctx)
 {
-    small_light_module_imagemagick_ctx_t *lctx = ctx->lctx;
+    small_light_module_graphicsmagick_ctx_t *lctx = ctx->lctx;
     if (lctx->image != NULL)
     {
         free(lctx->image);
@@ -46,28 +46,28 @@ static void small_light_filter_imagemagick_output_data_fini(const small_light_mo
     }
 }
 
-apr_status_t small_light_filter_imagemagick_init(
+apr_status_t small_light_filter_graphicsmagick_init(
     ap_filter_t *f,
     apr_bucket_brigade *bb,
     void *v_ctx)
 {
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "small_light_filter_imagemagick_init");
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "small_light_filter_graphicsmagick_init");
 
     request_rec *r = f->r;
     small_light_module_ctx_t *ctx = (small_light_module_ctx_t*)v_ctx;
-    small_light_module_imagemagick_ctx_t *lctx = ctx->lctx;
+    small_light_module_graphicsmagick_ctx_t *lctx = ctx->lctx;
 
     // create local context.
     if (ctx->lctx == NULL) {
         ctx->lctx = lctx =
-            (small_light_module_imagemagick_ctx_t *)apr_pcalloc(
-                r->pool, sizeof(small_light_module_imagemagick_ctx_t));
+            (small_light_module_graphicsmagick_ctx_t *)apr_pcalloc(
+                r->pool, sizeof(small_light_module_graphicsmagick_ctx_t));
     }
 
     return APR_SUCCESS;
 }
 
-apr_status_t small_light_filter_imagemagick_receive_data(
+apr_status_t small_light_filter_graphicsmagick_receive_data(
     ap_filter_t *f,
     apr_bucket_brigade *bb,
     void *v_ctx,
@@ -75,24 +75,24 @@ apr_status_t small_light_filter_imagemagick_receive_data(
     const char *data,
     apr_size_t len)
 {
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "small_light_filter_imagemagick_receive_data %d", len);
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "small_light_filter_graphicsmagick_receive_data %d", len);
     small_light_module_ctx_t* ctx = (small_light_module_ctx_t*)v_ctx;
-    small_light_module_imagemagick_ctx_t *lctx = ctx->lctx;
+    small_light_module_graphicsmagick_ctx_t *lctx = ctx->lctx;
     return small_light_receive_data(&lctx->image, &lctx->image_len, f, bb, data, len);
 }
 
 // output_data
-apr_status_t small_light_filter_imagemagick_output_data(
+apr_status_t small_light_filter_graphicsmagick_output_data(
     ap_filter_t *f,
     apr_bucket_brigade *bb,
     void *v_ctx,
     apr_bucket *e)
 {
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "small_light_filter_imagemagick_output_data");
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "small_light_filter_graphicsmagick_output_data");
 
     request_rec *r = f->r;
     small_light_module_ctx_t* ctx = (small_light_module_ctx_t*)v_ctx;
-    small_light_module_imagemagick_ctx_t *lctx = ctx->lctx;
+    small_light_module_graphicsmagick_ctx_t *lctx = ctx->lctx;
     struct timeval t2, t21, t22, t23, t3;
     MagickBooleanType status = MagickFalse;
 
@@ -109,7 +109,7 @@ apr_status_t small_light_filter_imagemagick_output_data(
     small_light_calc_image_size(&sz, r, ctx, 10000.0, 10000.0);
 
     // init wand
-    small_light_filter_imagemagick_output_data_init();
+    small_light_filter_graphicsmagick_output_data_init();
     lctx->wand = NewMagickWand();
 
     // prepare.
@@ -125,7 +125,7 @@ apr_status_t small_light_filter_imagemagick_output_data(
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickReadImageBlob");
     status = MagickReadImageBlob(lctx->wand, (void *)lctx->image, lctx->image_len);
     if (status == MagickFalse) {
-        small_light_filter_imagemagick_output_data_fini(ctx);
+        small_light_filter_graphicsmagick_output_data_fini(ctx);
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "couldn't read image");
         r->status = HTTP_INTERNAL_SERVER_ERROR;
         return APR_EGENERAL;
@@ -139,7 +139,7 @@ apr_status_t small_light_filter_imagemagick_output_data(
 
     // pass through.
     if (sz.pt_flg != 0) {
-        small_light_filter_imagemagick_output_data_fini(ctx);
+        small_light_filter_graphicsmagick_output_data_fini(ctx);
         apr_bucket *b = apr_bucket_pool_create(lctx->image, lctx->image_len, r->pool, ctx->bb->bucket_alloc);
         APR_BRIGADE_INSERT_TAIL(ctx->bb, b);
         APR_BRIGADE_INSERT_TAIL(ctx->bb, apr_bucket_eos_create(ctx->bb->bucket_alloc));
@@ -158,7 +158,7 @@ apr_status_t small_light_filter_imagemagick_output_data(
         MagickWand *trans_wand;
         trans_wand = MagickTransformImage(lctx->wand, crop_geo, size_geo);
         if (trans_wand == NULL || trans_wand == lctx->wand) {
-            small_light_filter_imagemagick_output_data_fini(ctx);
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "MagickTransformImage failed");
             r->status = HTTP_INTERNAL_SERVER_ERROR;
             return APR_EGENERAL;
@@ -183,7 +183,7 @@ apr_status_t small_light_filter_imagemagick_output_data(
         status = MagickNewImage(canvas_wand, sz.cw, sz.ch, canvas_color);
         DestroyPixelWand(canvas_color);
         if (status == MagickFalse) {
-            small_light_filter_imagemagick_output_data_fini(ctx);
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
                 "MagickNewImage(canvas_wand, %f, %f, bgcolor) failed", sz.cw, sz.ch);
             r->status = HTTP_INTERNAL_SERVER_ERROR;
@@ -194,7 +194,7 @@ apr_status_t small_light_filter_imagemagick_output_data(
             sz.dx, sz.dy);
         status = MagickCompositeImage(canvas_wand, lctx->wand, AtopCompositeOp, sz.dx, sz.dy);
         if (status == MagickFalse) {
-            small_light_filter_imagemagick_output_data_fini(ctx);
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
                 "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f) failed",
                 sz.dx, sz.dy);
@@ -291,7 +291,7 @@ apr_status_t small_light_filter_imagemagick_output_data(
 
     // free buffer and wand.
     MagickRelinquishMemory(canvas_buff);
-    small_light_filter_imagemagick_output_data_fini(ctx);
+    small_light_filter_graphicsmagick_output_data_fini(ctx);
 
     // insert new bucket to bucket brigade.
     apr_bucket *b = apr_bucket_pool_create(sled_image, sled_image_size, r->pool, ctx->bb->bucket_alloc);
