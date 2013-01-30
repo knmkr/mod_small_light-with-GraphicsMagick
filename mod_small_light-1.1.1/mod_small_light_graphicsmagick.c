@@ -109,7 +109,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     InitializeMagick("/opt/local/apache2/bin/");  //  InitializeMagick(*argv);
     lctx->wand = NewMagickWand();  // same in Image&Graphics Magick
 
-    // set the size of wand.
+    // set jpeg hint to wand.
     // TODO: optimize jpeg:size
     if (sz.jpeghint_flg != 0) {
         char *jpeg_size_opt = (char *)apr_psprintf(r->pool, "%dx%d",
@@ -138,13 +138,13 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         return APR_EGENERAL;
     }
 
-    // calc size.
+    // calc size of original image.
     gettimeofday(&t22, NULL);
-    double iw = (double)MagickGetImageWidth(lctx->wand);   // same in Image&Graphics Magick
-    double ih = (double)MagickGetImageHeight(lctx->wand);  // same in Image&Graphics Magick
+    double iw = (double)MagickGetImageWidth(lctx->wand);
+    double ih = (double)MagickGetImageHeight(lctx->wand);
     small_light_calc_image_size(&sz, r, ctx, iw, ih);
 
-    // pass through.
+    // pass through. (check if retval of small_light_calc_image_size() is ok)
     if (sz.pt_flg != 0) {
         small_light_filter_graphicsmagick_output_data_fini(ctx);
         apr_bucket *b = apr_bucket_pool_create(lctx->image, lctx->image_len, r->pool, ctx->bb->bucket_alloc);
@@ -153,7 +153,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         return ap_pass_brigade(f->next, ctx->bb);
     }
 
-    // crop, scale.
+    // crop, scale. (resize wand to original-size of loaded image & resize to small_lighted-size)
     status = MagickPass;
     if (sz.scale_flg != 0) {
         char *crop_geo = (char *)apr_psprintf(r->pool, "%f!x%f!+%f+%f",
