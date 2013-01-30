@@ -214,45 +214,37 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         lctx->wand = canvas_wand;
     }
 
-    /* // effects. */
+    // effects.
     /* char *unsharp = (char *)apr_table_get(ctx->prm, "unsharp"); */
     /* if (unsharp) { */
-    /*     GeometryInfo geo; */
-    /*     ParseGeometry(unsharp, &geo); */
-    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
-    /*         "MagickUnsharpMaskImage(wand, %f, %f, %f, %f)", */
-    /*         geo.rho, geo.sigma, geo.xi, geo.psi); */
+        /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
+        /*     "MagickUnsharpMaskImage(wand, %f, %f, %f, %f)", */
+        /*     geo.rho, geo.sigma, geo.xi, geo.psi); */
     /*     status = MagickUnsharpMaskImage(lctx->wand, geo.rho, geo.sigma, geo.xi, geo.psi); */
     /*     if (status == MagickFalse) { */
     /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "unsharp failed"); */
     /*     } */
     /* } */
 
-    /* char *sharpen = (char *)apr_table_get(ctx->prm, "sharpen"); */
-    /* if (sharpen) { */
-    /*     GeometryInfo geo; */
-    /*     ParseGeometry(sharpen, &geo); */
-    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
-    /*         "MagickSharpenImage(wand, %f, %f)", */
-    /*         geo.rho, geo.sigma); */
-    /*     status = MagickSharpenImage(lctx->wand, geo.rho, geo.sigma); */
-    /*     if (status == MagickFalse) { */
-    /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "sharpen failed"); */
-    /*     } */
-    /* } */
+    char *sharpen = (char *)apr_table_get(ctx->prm, "sharpen");
+    if (sharpen) {
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
+                      "sharpen: radius=0.0, sigma=%f)", sharpen);
+        status = MagickSharpenImage(lctx->wand, (float)0.0, (float)atof(sharpen));
+        if (status == MagickFalse) {
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "sharpen failed");
+        }
+    }
 
-    /* char *blur = (char *)apr_table_get(ctx->prm, "blur"); */
-    /* if (blur) { */
-    /*     GeometryInfo geo; */
-    /*     ParseGeometry(blur, &geo); */
-    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
-    /*         "MagickBlurImage(wand, %f, %f)", */
-    /*         geo.rho, geo.sigma); */
-    /*     status = MagickBlurImage(lctx->wand, geo.rho, geo.sigma); */
-    /*     if (status == MagickFalse) { */
-    /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "blur failed"); */
-    /*     } */
-    /* } */
+    char *blur = (char *)apr_table_get(ctx->prm, "blur");
+    if (blur) {
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
+                      "blur: radius=0.0, sigma=%f)", blur);
+        status = MagickBlurImage(lctx->wand, (float)0.0, (float)atof(blur));
+        if (status == MagickFalse) {
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "blur failed");
+        }
+    }
 
     /* // border. */
     /* if (sz.bw > 0.0 || sz.bh > 0.0) { */

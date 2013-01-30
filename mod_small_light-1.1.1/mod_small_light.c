@@ -400,14 +400,25 @@ int small_light_parse_param(
     // tokenize.
     const char *ptr1 = param_str;
     char *token;
+
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "ptr1 %s", ptr1);  //
+
     for (;;) {
-        token = ap_get_token(r->pool, &ptr1, 0);
+        // FIXME: parse "blur=r,s" into "blur=r" and "s" ...
+        token = ap_get_token(r->pool, &ptr1, 0);  // delimiter ',' ?
+
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "token %s", token);  //
         if (!(token && *token)) {
             break;
         }
         const char *ptr2 = token, *key;
+
         key = ap_getword(r->pool, &ptr2, '=');
         apr_table_set(prm, key, ptr2);
+
+        //
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "parser %s %s %s", prm, key, ptr2);
+
         if (!*ptr1) {
             break;
         }
