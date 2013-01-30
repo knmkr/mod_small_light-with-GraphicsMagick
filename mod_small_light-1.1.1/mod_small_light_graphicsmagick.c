@@ -215,16 +215,16 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     }
 
     // effects.
-    /* char *unsharp = (char *)apr_table_get(ctx->prm, "unsharp"); */
-    /* if (unsharp) { */
-        /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
-        /*     "MagickUnsharpMaskImage(wand, %f, %f, %f, %f)", */
-        /*     geo.rho, geo.sigma, geo.xi, geo.psi); */
-    /*     status = MagickUnsharpMaskImage(lctx->wand, geo.rho, geo.sigma, geo.xi, geo.psi); */
-    /*     if (status == MagickFalse) { */
-    /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "unsharp failed"); */
-    /*     } */
-    /* } */
+    // NOTE: because of bug with parsing, enable parameter is sigma only. other parameters are set to defalut.
+    char *unsharp = (char *)apr_table_get(ctx->prm, "unsharp");
+    if (unsharp) {
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
+                      "unsharp: radius=0.0, sigma=%f, , )", unsharp);
+        status = MagickUnsharpMaskImage(lctx->wand, (float)0.0, (float)atof(unsharp), (float)1.0, (float)0.05);
+        if (status == MagickFalse) {
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "unsharp failed");
+        }
+    }
 
     char *sharpen = (char *)apr_table_get(ctx->prm, "sharpen");
     if (sharpen) {
