@@ -105,6 +105,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     small_light_calc_image_size(&sz, r, ctx, 10000.0, 10000.0);  // ?
 
     // init wand (Allocate Wand handle)
+    // TODO: get path of client (=apache)
     InitializeMagick("/opt/local/apache2/bin/");  //  InitializeMagick(*argv);
     lctx->wand = NewMagickWand();  // same in Image&Graphics Magick
 
@@ -117,6 +118,12 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
 
         MagickSetSize(lctx->wand, (long)sz.dw, (long)sz.dh);
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetOption(jpeg:size, %s)", jpeg_size_opt);
+
+        double wand_jpg_w = (double)MagickGetImageWidth(lctx->wand);
+        double wand_jpg_h = (double)MagickGetImageHeight(lctx->wand);
+        /* char *size_wand_jpg = (char *)apr_psprintf(r->pool, "%fx%f", wand_jpg_w, wand_jpg_h); */
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "size_wand_jpg: %fx%f", wand_jpg_w, wand_jpg_h);
+
     }
 
     // load image from memory (not file).
@@ -147,13 +154,12 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     }
 
     // crop, scale.
-    // maybe same in Image&Graphics Magick
-    // status = MagickTrue;
     status = MagickPass;
     if (sz.scale_flg != 0) {
         char *crop_geo = (char *)apr_psprintf(r->pool, "%f!x%f!+%f+%f",
             sz.sw, sz.sh, sz.sx, sz.sy);
         char *size_geo = (char *)apr_psprintf(r->pool, "%f!x%f!", sz.dw, sz.dh);
+        /* char *size_geo = (char *)apr_psprintf(r->pool, "%0.000000!x%0.000000!"); */
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
             "MagickTransformImage(wand, ""%s"", ""%s"")",
             crop_geo, size_geo);
@@ -291,25 +297,9 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     unsigned char *canvas_buff;
     const char *sled_image;
     size_t sled_image_size;
-
-    /* const unsigned long DST_WIDTH = 200; */
-    /* const unsigned long DST_HEIGHT = 200; */
-    status = MagickResizeImage(lctx->wand, (long)sz.dw, (long)sz.dh,
-                               (FilterTypes)LanczosFilter, (double)1.0);
-
     canvas_buff = MagickWriteImageBlob(lctx->wand, &sled_image_size);
     sled_image = (const char *)apr_pmemdup(r->pool, canvas_buff, sled_image_size);
-
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sled_image_size = %d", sled_image_size);
-    if (status == MagickFail)
-      {
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickResizeImage Failed");
-      }
-    else
-      {
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickResizeImage Passed!");
-      }
-
 
     // free buffer and wand.
     MagickRelinquishMemory(canvas_buff);
