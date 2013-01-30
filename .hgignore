@@ -15,3 +15,6 @@ Makefile
 config.status
 *.jpg
 autom4te.cache
+GPATH
+GRTAGS
+GTAGS

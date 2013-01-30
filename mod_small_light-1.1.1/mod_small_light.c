@@ -478,6 +478,9 @@ int small_light_parse_color(request_rec *r, small_light_color_t *color, const ch
 {
     int res;
     int len = strlen(str);
+
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "str: %s", str);
+
     if (len == 3) {
         res = sscanf(str, "%1hx%1hx%1hx", &color->r, &color->g, &color->b);
         if (res != EOF) {
@@ -493,6 +496,7 @@ int small_light_parse_color(request_rec *r, small_light_color_t *color, const ch
         res = sscanf(str, "%02hx%02hx%02hx", &color->r, &color->g, &color->b);
         if (res != EOF) {
             color->a = 255;
+
             return OK;
         }
     } else if (len == 8) {
@@ -622,10 +626,17 @@ void small_light_calc_image_size(
     }
     sz->cw = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "cw"));
     sz->ch = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "ch"));
+
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "parse color of cc");  //
     small_light_parse_color(r, &sz->cc, (char *)apr_table_get(ctx->prm, "cc"));
+
+
     sz->bw = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "bw"));
     sz->bh = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "bh"));
+
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "parse color of bc");  //
     small_light_parse_color(r, &sz->bc, (char *)apr_table_get(ctx->prm, "bc"));
+
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
         "size info:sx=%f,sy=%f,sw=%f,sh=%f,dw=%f,dh=%f,cw=%f,ch=%f,bw=%f,bh=%f",
         sz->sx, sz->sy, sz->sw, sz->sh,

@@ -177,31 +177,45 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "no scale");
     }
 
-    // create canvas then draw image to the canvas.
+    // add color
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.r: %hx", sz.cc.r);
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.g: %hx", sz.cc.g);
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.b: %hx", sz.cc.b);
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.a: %hx", sz.cc.a);
+
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.r: %f", sz.cc.r / 255.0);
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.g: %f", sz.cc.g / 255.0);
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.b: %f", sz.cc.b / 255.0);
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.a: %f", sz.cc.a / 255.0);
+
     if (sz.cw > 0.0 && sz.ch > 0.0) {
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "NewMagickWand()");
-        MagickWand *canvas_wand = NewMagickWand();
-        /* PixelWand *canvas_color = NewPixelWand();  // PixelWand *wand */
-        /* PixelSetRed(canvas_color, sz.cc.r / 255.0); */
-        /* PixelSetGreen(canvas_color, sz.cc.g / 255.0); */
-        /* PixelSetBlue(canvas_color, sz.cc.b / 255.0); */
-        /* PixelSetOpacity(canvas_color, sz.cc.a / 255.0);  // PixelSetAlpha(canvas_color, sz.cc.a / 255.0); */
-        /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
-        /*     "MagickNewImage(canvas_wand, %f, %f, bgcolor)", sz.cw, sz.ch); */
-        /* status = MagickNewImage(canvas_wand, sz.cw, sz.ch, canvas_color); */
-        /* DestroyPixelWand(canvas_color); */
-        /* if (status == MagickFail) { */
-        /*     small_light_filter_graphicsmagick_output_data_fini(ctx); */
-        /*     ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, */
-        /*         "MagickNewImage(canvas_wand, %f, %f, bgcolor) failed", sz.cw, sz.ch); */
-        /*     r->status = HTTP_INTERNAL_SERVER_ERROR; */
-        /*     return APR_EGENERAL; */
-        /* } */
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "in create canvas");
+
+        /* MagickWand *canvas_wand = NewMagickWand(); */
+        PixelWand *canvas_color = NewPixelWand();
+
+        PixelSetRed(canvas_color, sz.cc.r / 255.0);
+        PixelSetGreen(canvas_color, sz.cc.g / 255.0);
+        PixelSetBlue(canvas_color, sz.cc.b / 255.0);
+        PixelSetOpacity(canvas_color, sz.cc.a / 255.0);
+
+        //
+        status = MagickSetImageBackgroundColor(lctx->wand, canvas_color);
+        /* // TODO: add error handle */
+        if (status == MagickFail) {
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                          "MagickSetImageBackgroundColor(lctx->wand, canvas_color) failed");
+            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            return APR_EGENERAL;
+        }
 
         /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
         /*     "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f)", */
         /*     sz.dx, sz.dy); */
+
         /* status = MagickCompositeImage(canvas_wand, lctx->wand, AtopCompositeOp, sz.dx, sz.dy); */
+        /* DestroyPixelWand(canvas_color); */
         /* if (status == MagickFail) { */
         /*     small_light_filter_graphicsmagick_output_data_fini(ctx); */
         /*     ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, */
@@ -210,8 +224,10 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         /*     r->status = HTTP_INTERNAL_SERVER_ERROR; */
         /*     return APR_EGENERAL; */
         /* } */
+
         /* DestroyMagickWand(lctx->wand); */
-        lctx->wand = canvas_wand;
+        /* DestroyMagickWand(canvas_wand); */
+        /* lctx->wand = canvas_wand; */
     }
 
     // effects.
@@ -219,7 +235,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     char *unsharp = (char *)apr_table_get(ctx->prm, "unsharp");
     if (unsharp) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-                      "unsharp: radius=0.0, sigma=%f, , )", unsharp);
+                      "unsharp: radius=0.0, sigma=%s, , )", unsharp);
         status = MagickUnsharpMaskImage(lctx->wand, (float)0.0, (float)atof(unsharp), (float)1.0, (float)0.05);
         if (status == MagickFalse) {
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "unsharp failed");
@@ -229,7 +245,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     char *sharpen = (char *)apr_table_get(ctx->prm, "sharpen");
     if (sharpen) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-                      "sharpen: radius=0.0, sigma=%f)", sharpen);
+                      "sharpen: radius=0.0, sigma=%s)", sharpen);
         status = MagickSharpenImage(lctx->wand, (float)0.0, (float)atof(sharpen));
         if (status == MagickFalse) {
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "sharpen failed");
@@ -239,14 +255,14 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     char *blur = (char *)apr_table_get(ctx->prm, "blur");
     if (blur) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
-                      "blur: radius=0.0, sigma=%f)", blur);
+                      "blur: radius=0.0, sigma=%s)", blur);
         status = MagickBlurImage(lctx->wand, (float)0.0, (float)atof(blur));
         if (status == MagickFalse) {
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "blur failed");
         }
     }
 
-    /* // border. */
+    // border.
     /* if (sz.bw > 0.0 || sz.bh > 0.0) { */
     /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "draw border"); */
     /*     DrawingWand *border_wand = NewDrawingWand(); */
@@ -255,7 +271,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     /*     PixelSetRed(border_color, sz.bc.r / 255.0); */
     /*     PixelSetGreen(border_color, sz.bc.g / 255.0); */
     /*     PixelSetBlue(border_color, sz.bc.b / 255.0); */
-    /*     PixelSetAlpha(border_color, sz.bc.a / 255.0); */
+    /*     PixelSetOpacity(border_color, sz.cc.a / 255.0);  // PixelSetAlpha(canvas_color, sz.cc.a / 255.0); */
     /*     DrawSetFillColor(border_wand, border_color); */
     /*     DrawSetStrokeColor(border_wand, border_color); */
     /*     DrawSetStrokeWidth(border_wand, 1); */
