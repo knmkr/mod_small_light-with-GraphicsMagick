@@ -107,30 +107,24 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     // init wand (Allocate Wand handle)
     // TODO: get path of client (=apache)
     InitializeMagick("/opt/local/apache2/bin/");  //  InitializeMagick(*argv);
-    lctx->wand = NewMagickWand();  // same in Image&Graphics Magick
+    lctx->wand = NewMagickWand();
 
     // set jpeg hint to wand.
-    // TODO: optimize jpeg:size
     if (sz.jpeghint_flg != 0) {
-        char *jpeg_size_opt = (char *)apr_psprintf(r->pool, "%dx%d",
-                                                   (int)sz.dw, (int)sz.dh);
-        /* MagickSetOption(lctx->wand, "jpeg:size", jpeg_size_opt); */
-
+        char *jpeg_size_opt = (char *)apr_psprintf(r->pool, "%dx%d", (int)sz.dw, (int)sz.dh);
         MagickSetSize(lctx->wand, (long)sz.dw, (long)sz.dh);
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetOption(jpeg:size, %s)", jpeg_size_opt);
 
         double wand_jpg_w = (double)MagickGetImageWidth(lctx->wand);
         double wand_jpg_h = (double)MagickGetImageHeight(lctx->wand);
-        /* char *size_wand_jpg = (char *)apr_psprintf(r->pool, "%fx%f", wand_jpg_w, wand_jpg_h); */
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "size_wand_jpg: %fx%f", wand_jpg_w, wand_jpg_h);
-
     }
 
     // load image from memory (not file).
     gettimeofday(&t21, NULL);
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickReadImageBlob");
 
-    status = MagickReadImageBlob(lctx->wand, (void *)lctx->image, lctx->image_len);  // same in Image&Graphics Magick
+    status = MagickReadImageBlob(lctx->wand, (void *)lctx->image, lctx->image_len);
     if (status == MagickFail) {
         small_light_filter_graphicsmagick_output_data_fini(ctx);
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "couldn't read image");
@@ -159,7 +153,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         char *crop_geo = (char *)apr_psprintf(r->pool, "%f!x%f!+%f+%f",
             sz.sw, sz.sh, sz.sx, sz.sy);
         char *size_geo = (char *)apr_psprintf(r->pool, "%f!x%f!", sz.dw, sz.dh);
-        /* char *size_geo = (char *)apr_psprintf(r->pool, "%0.000000!x%0.000000!"); */
+
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
             "MagickTransformImage(wand, ""%s"", ""%s"")",
             crop_geo, size_geo);
@@ -178,15 +172,6 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     }
 
     // create canvas (background-frame)
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.r: %hx", sz.cc.r);
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.g: %hx", sz.cc.g);
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.b: %hx", sz.cc.b);
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.a: %hx", sz.cc.a);
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.r: %f", sz.cc.r / 255.0);
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.g: %f", sz.cc.g / 255.0);
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.b: %f", sz.cc.b / 255.0);
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.a: %f", sz.cc.a / 255.0);
-
     if (sz.cw > 0.0 && sz.ch > 0.0) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "in create canvas");
 
@@ -199,14 +184,6 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
 
         double canvas_border_width;
         double canvas_border_height;
-
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "cw %lf", sz.cw);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "ch %lf", sz.ch);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "dw %lf", sz.dw);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "dh %lf", sz.dh);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "iw %lf", iw);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "ih %lf", ih);
-
         canvas_border_width = (sz.cw - sz.dw) / 2;
         canvas_border_height = (sz.ch - sz.dh) / 2;
 
@@ -217,20 +194,20 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         if (canvas_border_width > 0.0 && canvas_border_height > 0.0) {
             status = MagickBorderImage(lctx->wand, canvas_color,
                                        canvas_border_width, canvas_border_height);
+
+            if (status == MagickFail) {
+                small_light_filter_graphicsmagick_output_data_fini(ctx);
+                ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                              "MagickBorderImage(%lf, %lf) failed",
+                              canvas_border_width, canvas_border_height);
+                r->status = HTTP_INTERNAL_SERVER_ERROR;
+                return APR_EGENERAL;
+            }
         }
         else {
-            ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "invalid canvas size");
+          ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "invalid canvas size");
         }
         DestroyPixelWand(canvas_color);
-
-        if (status == MagickFail) {
-            small_light_filter_graphicsmagick_output_data_fini(ctx);
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
-                          "MagickBorderImage(%lf, %lf) failed",
-                          canvas_border_width, canvas_border_height);
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
-            return APR_EGENERAL;
-        }
     }
 
     /* // rotate image */
@@ -258,6 +235,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
 
     // effects.
     // NOTE: because of bug with parsing, enable parameter is sigma only. other parameters are set to defalut.
+    // TODO: enable other parameters like blur=1;3 (r=1, sigma=3)
     char *unsharp = (char *)apr_table_get(ctx->prm, "unsharp");
     if (unsharp) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
@@ -317,17 +295,13 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
 
     gettimeofday(&t23, NULL);
 
-
     // set compression quality. default quality is 75 (0 <= q <= 100).
     double q = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "q"));
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "q %lf", q);
     if (q >= 0.0 && q <= 100.0) {
         char *infile_format = (char *)MagickGetImageFormat(lctx->wand);
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "infile_format %s", infile_format);
-
-        /* int infile_q; */
-        /* infile_q = MagickGetImageCompression(lctx->wand); */
-        /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "infile_q %d", infile_q); */
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetCompressionQuality(wand, %lf)", q);
 
         if (strcmp(infile_format, "JPEG") == 0) {
             status = MagickSetCompressionQuality(lctx->wand, q);
@@ -342,19 +316,19 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         if (status == MagickFail) {
             small_light_filter_graphicsmagick_output_data_fini(ctx);
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
-                          "MagickSetComressionQualty(wand, %f)) failed", q);
+                          "MagickSetComressionQualty(wand, %lf)) failed", q);
             r->status = HTTP_INTERNAL_SERVER_ERROR;
             return APR_EGENERAL;
         }
     }
 
-    // set file format like jpeg, png. default is jpeg
-    // TODO: only MagickSetFormat ?
+    // set outfile format like jpeg, png. default is jpeg.
+    // TODO: only MagickSetFormat?
     char *of = (char *)apr_table_get(ctx->prm, "of");
 
     if (strcmp(of, "jpeg") == 0 || strcmp(of, "png") == 0) {
         MagickSetFormat(lctx->wand, of);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetFormat(wand, '%s')", of);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetFormat(wand, %s)", of);
 
         if (status == MagickFail) {
             small_light_filter_graphicsmagick_output_data_fini(ctx);

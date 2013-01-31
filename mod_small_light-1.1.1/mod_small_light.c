@@ -110,8 +110,6 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
     request_rec *r = f->r;
     small_light_module_ctx_t *ctx = f->ctx;
 
-    ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "in small_light_filter()");
-
     // do nothing if bucket brigade is empty.
     if (APR_BRIGADE_EMPTY(bb))
         return APR_SUCCESS;
@@ -120,7 +118,6 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
     if (!ctx) {
         // main request only.
         if (r->main) {
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "main request only.");
             ap_remove_output_filter(f);
             return ap_pass_brigade(f->next, bb);
         }
@@ -137,30 +134,24 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
                 ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "Location: %s -> %s", loc, sl_loc);
                 apr_table_set(r->headers_out, "Location", sl_loc);
             }
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "modify redirect location if HTTP_MOVED_PERMANENTLY or ...");
             ap_remove_output_filter(f);
             return ap_pass_brigade(f->next, bb);
         }
 
         // do nothing if not HTTP_OK.
         if (r->status != HTTP_OK) {
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "do nothing if not HTTP_OK.");
             ap_remove_output_filter(f);
             return ap_pass_brigade(f->next, bb);
         }
 
         // No need to process HEAD or 204/304, by mod_deflate.
         if (APR_BUCKET_IS_EOS(APR_BRIGADE_FIRST(bb))) {
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "No need to process HEAD or 204/304, by mod_deflate.");
             ap_remove_output_filter(f);
             return ap_pass_brigade(f->next, bb);
         }
 
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "will do something");
-
         // initialize context.
         f->ctx = ctx = (small_light_module_ctx_t *)apr_pcalloc(r->pool, sizeof(small_light_module_ctx_t));
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "initialize context. done");
 
         // parse pattern or engine in uri.
         ap_log_rerror(APLOG_MARK, APLOG_INFO, 0, r, "uri=%s", r->uri);
@@ -209,8 +200,6 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
             apr_table_set(ctx->prm, "e", SMALL_LIGHT_DEFAULT_ENGINE);
         }
         engine = (char *)apr_table_get(ctx->prm, "e");
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "engine=%s", engine);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "parse pattern or engine in uri. done");
 
         // set function.
         if (strcmp(engine, SMALL_LIGHT_ENGINE_IMLIB2) == 0) {
@@ -225,22 +214,18 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
             ctx->init_func = (SMALL_LIGHT_FILTER_INIT)small_light_filter_graphicsmagick_init;
             ctx->receive_data_func = (SMALL_LIGHT_FILTER_RECEIVE_DATA)small_light_filter_graphicsmagick_receive_data;
             ctx->output_data_func = (SMALL_LIGHT_FILTER_OUTPUT_DATA)small_light_filter_graphicsmagick_output_data;
-            ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "GRAPHICSMAGICK choosed");
         }
         if (ctx->init_func == NULL) {
             ctx->init_func = (SMALL_LIGHT_FILTER_INIT)small_light_filter_dummy_init;
             ctx->receive_data_func = (SMALL_LIGHT_FILTER_RECEIVE_DATA)small_light_filter_dummy_receive_data;
             ctx->output_data_func = (SMALL_LIGHT_FILTER_OUTPUT_DATA)small_light_filter_dummy_output_data;
         }
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "set function.  done");
 
         // init filter engine.
         ctx->init_func(f, bb, ctx);  //
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "init filter engine.  done");
 
         // create bucket brigade.
         ctx->bb = apr_brigade_create(r->pool, f->c->bucket_alloc);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "create bucket brigade.  done");
 
         gettimeofday(&ctx->t, NULL);
     }
@@ -254,8 +239,6 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
         apr_status_t rv;
 
         e = APR_BRIGADE_FIRST(bb);
-
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "in bucket brigade loop.");
 
         if (APR_BUCKET_IS_EOS(e)) {
             // finally, output data process
@@ -298,7 +281,6 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
     }
 
     apr_brigade_cleanup(bb);
-    ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "return APR_SUCCESS;");
     return APR_SUCCESS;
 }
 
@@ -479,8 +461,6 @@ int small_light_parse_color(request_rec *r, small_light_color_t *color, const ch
     int res;
     int len = strlen(str);
 
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "str: %s", str);
-
     if (len == 3) {
         res = sscanf(str, "%1hx%1hx%1hx", &color->r, &color->g, &color->b);
         if (res != EOF) {
@@ -626,17 +606,10 @@ void small_light_calc_image_size(
     }
     sz->cw = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "cw"));
     sz->ch = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "ch"));
-
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "parse color of cc");  //
     small_light_parse_color(r, &sz->cc, (char *)apr_table_get(ctx->prm, "cc"));
-
-
     sz->bw = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "bw"));
     sz->bh = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "bh"));
-
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "parse color of bc");  //
     small_light_parse_color(r, &sz->bc, (char *)apr_table_get(ctx->prm, "bc"));
-
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
         "size info:sx=%f,sy=%f,sw=%f,sh=%f,dw=%f,dh=%f,cw=%f,ch=%f,bw=%f,bh=%f",
         sz->sx, sz->sy, sz->sw, sz->sh,
