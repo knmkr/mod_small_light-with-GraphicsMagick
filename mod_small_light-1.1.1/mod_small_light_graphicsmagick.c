@@ -26,6 +26,7 @@ typedef struct {
 ** functions.
 */
 
+
 static void small_light_filter_graphicsmagick_output_data_fini(const small_light_module_ctx_t *ctx)
 {
     small_light_module_graphicsmagick_ctx_t *lctx = ctx->lctx;
@@ -106,7 +107,8 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
 
     // init wand (Allocate Wand handle)
     // TODO: get path of client (=apache)
-    InitializeMagick("/opt/local/apache2/bin/");  //  InitializeMagick(*argv);
+    InitializeMagick("");  //  InitializeMagick(*argv);
+
     lctx->wand = NewMagickWand();
 
     // set jpeg hint to wand.
