@@ -177,7 +177,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "no scale");
     }
 
-    // add color
+    // create canvas (background) then draw image on it.
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.r: %hx", sz.cc.r);
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.g: %hx", sz.cc.g);
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.b: %hx", sz.cc.b);
@@ -191,44 +191,73 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     if (sz.cw > 0.0 && sz.ch > 0.0) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "in create canvas");
 
-        /* MagickWand *canvas_wand = NewMagickWand(); */
-        PixelWand *canvas_color = NewPixelWand();
-
-        PixelSetRed(canvas_color, sz.cc.r / 255.0);
-        PixelSetGreen(canvas_color, sz.cc.g / 255.0);
-        PixelSetBlue(canvas_color, sz.cc.b / 255.0);
-        PixelSetOpacity(canvas_color, sz.cc.a / 255.0);
-
-        //
-        status = MagickSetImageBackgroundColor(lctx->wand, canvas_color);
-        /* // TODO: add error handle */
+        MagickWand *canvas_wand = NewMagickWand();
+        status = MagickSetSize(canvas_wand, (long)sz.cw, (long)sz.ch);
         if (status == MagickFail) {
             small_light_filter_graphicsmagick_output_data_fini(ctx);
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
-                          "MagickSetImageBackgroundColor(lctx->wand, canvas_color) failed");
+                          "MagickSetSizes() failed");
             r->status = HTTP_INTERNAL_SERVER_ERROR;
             return APR_EGENERAL;
         }
 
-        /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
-        /*     "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f)", */
-        /*     sz.dx, sz.dy); */
+        //
+        /* MagickWand *canvas_wand = NewMagickWand(); */
+        PixelWand *canvas_color = NewPixelWand();
+        /* PixelSetColor(canvas_color, "#000000"); */
+        PixelSetRed(canvas_color, sz.cc.r / 255.0);
+        PixelSetGreen(canvas_color, sz.cc.g / 255.0);
+        PixelSetBlue(canvas_color, sz.cc.b / 255.0);
+        /* PixelSetOpacity(canvas_color, sz.cc.a / 255.0); */
 
-        /* status = MagickCompositeImage(canvas_wand, lctx->wand, AtopCompositeOp, sz.dx, sz.dy); */
-        /* DestroyPixelWand(canvas_color); */
+        /* status = MagickSetImageBackgroundColor(canvas_wand, canvas_color); */
         /* if (status == MagickFail) { */
         /*     small_light_filter_graphicsmagick_output_data_fini(ctx); */
         /*     ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, */
-        /*         "MagickCompositeImage(canvas_wand, wand, AtopCompositeOp, %f, %f) failed", */
-        /*         sz.dx, sz.dy); */
+        /*                   "MagickSetImageBackgroundColor() failed"); */
         /*     r->status = HTTP_INTERNAL_SERVER_ERROR; */
         /*     return APR_EGENERAL; */
         /* } */
 
+        status = MagickRotateImage(lctx->wand, canvas_color, 30);
+
+        /* status = MagickCompositeImage(canvas_wand, lctx->wand, AtopCompositeOp, sz.dx, sz.dy); */
+        DestroyPixelWand(canvas_color);
+        if (status == MagickFail) {
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                          "MagickCompositeImage() failed");
+            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            return APR_EGENERAL;
+        }
+
         /* DestroyMagickWand(lctx->wand); */
-        /* DestroyMagickWand(canvas_wand); */
+        DestroyMagickWand(canvas_wand);
         /* lctx->wand = canvas_wand; */
     }
+
+    /* // rotate image */
+    /* if (sz.cw > 0.0 && sz.ch > 0.0) { */
+    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "in rotate image"); */
+
+    /*     PixelWand *canvas_color = NewPixelWand(); */
+    /*     PixelSetRed(canvas_color, sz.cc.r / 255.0); */
+    /*     PixelSetGreen(canvas_color, sz.cc.g / 255.0); */
+    /*     PixelSetBlue(canvas_color, sz.cc.b / 255.0); */
+
+    /*     // */
+    /*     status = MagickRotateImage(lctx->wand, canvas_color, 30); */
+    /*     DestroyPixelWand(canvas_color); */
+
+    /*     if (status == MagickFail) { */
+    /*         small_light_filter_graphicsmagick_output_data_fini(ctx); */
+    /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, */
+    /*                       "MagickRotateImage() failed"); */
+    /*         r->status = HTTP_INTERNAL_SERVER_ERROR; */
+    /*         return APR_EGENERAL; */
+    /*     } */
+    /* } */
+
 
     // effects.
     // NOTE: because of bug with parsing, enable parameter is sigma only. other parameters are set to defalut.
