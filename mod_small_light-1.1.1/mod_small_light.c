@@ -342,7 +342,7 @@ void small_light_init_param(apr_table_t *prm)
     apr_table_set(prm, "bh", "");
     apr_table_set(prm, "bc", "000000");
     apr_table_set(prm, "pt", "n");
-    apr_table_set(prm, "q", "0");
+    apr_table_set(prm, "q", "-1");
     apr_table_set(prm, "of", "jpeg");
     apr_table_set(prm, "info", "0");
     apr_table_set(prm, "inhexif", "n");

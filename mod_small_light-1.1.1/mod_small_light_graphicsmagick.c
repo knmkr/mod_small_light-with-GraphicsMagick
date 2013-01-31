@@ -303,16 +303,29 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "infile_format %s", infile_format);
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetCompressionQuality(wand, %lf)", q);
 
+        // set CompressionType for JPEG or PNG
         if (strcmp(infile_format, "JPEG") == 0) {
-            status = MagickSetCompressionQuality(lctx->wand, q);
+            status = MagickSetImageCompression(lctx->wand, (CompressionType)JPEGCompression);
         } else if (strcmp(infile_format, "PNG") == 0) {
-            // TODO: enable PNG
-            status = MagickSetCompressionQuality(lctx->wand, q);
+            status = MagickSetImageCompression(lctx->wand, (CompressionType)ZipCompression);
         } else {
             ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
                           "unexpected infile_format %s", infile_format);
+            status == MagickPass;
+        }
+        if (status == MagickFail) {
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                          "MagickSetImageComression() failed");
+            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            return APR_EGENERAL;
         }
 
+        // set compression quality for JPEG or PNG
+        // NOTE: for PNG, q has no effect on the appearance of image, since the compression is always lossless.
+        if (strcmp(infile_format, "JPEG") == 0 || strcmp(infile_format, "PNG") == 0) {
+          status = MagickSetCompressionQuality(lctx->wand, q);
+        }
         if (status == MagickFail) {
             small_light_filter_graphicsmagick_output_data_fini(ctx);
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
