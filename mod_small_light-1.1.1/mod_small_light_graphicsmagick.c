@@ -332,6 +332,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         if (strcmp(infile_format, "JPEG") == 0) {
             status = MagickSetCompressionQuality(lctx->wand, q);
         } else if (strcmp(infile_format, "PNG") == 0) {
+            // TODO: enable PNG
             status = MagickSetCompressionQuality(lctx->wand, q);
         } else {
             ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
@@ -347,10 +348,10 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         }
     }
 
-    /* // set file format like jpg, bmp,... */
-    /* char *of = (char *)apr_table_get(ctx->prm, "of"); */
-    /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetFormat(wand, '%s')", of); */
-    /* MagickSetFormat(lctx->wand, of); */
+    // set file format like jpeg, png,... default is jpeg
+    char *of = (char *)apr_table_get(ctx->prm, "of");
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetFormat(wand, '%s')", of);
+    MagickSetFormat(lctx->wand, of);
 
     // get small_lighted image as binary.
     unsigned char *canvas_buff;
@@ -371,10 +372,10 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     // insert eos to bucket brigade.
     APR_BRIGADE_INSERT_TAIL(ctx->bb, apr_bucket_eos_create(ctx->bb->bucket_alloc));
 
-    /* // set correct Content-Type and Content-Length. */
-    /* char *cont_type = apr_psprintf(r->pool, "image/%s", of); */
-    /* ap_set_content_type(r, cont_type); */
-    /* ap_set_content_length(r, sled_image_size); */
+    // set correct Content-Type and Content-Length.
+    char *cont_type = apr_psprintf(r->pool, "image/%s", of);
+    ap_set_content_type(r, cont_type);
+    ap_set_content_length(r, sled_image_size);
 
     // end.
     gettimeofday(&t3, NULL);
