@@ -291,26 +291,31 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     }
 
     // border.
-    /* if (sz.bw > 0.0 || sz.bh > 0.0) { */
-    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "draw border"); */
-    /*     DrawingWand *border_wand = NewDrawingWand(); */
-    /*     PixelWand *border_color; */
-    /*     border_color = NewPixelWand(); */
-    /*     PixelSetRed(border_color, sz.bc.r / 255.0); */
-    /*     PixelSetGreen(border_color, sz.bc.g / 255.0); */
-    /*     PixelSetBlue(border_color, sz.bc.b / 255.0); */
-    /*     PixelSetOpacity(border_color, sz.cc.a / 255.0);  // PixelSetAlpha(canvas_color, sz.cc.a / 255.0); */
-    /*     DrawSetFillColor(border_wand, border_color); */
-    /*     DrawSetStrokeColor(border_wand, border_color); */
-    /*     DrawSetStrokeWidth(border_wand, 1); */
-    /*     DrawRectangle(border_wand, 0, 0, sz.cw - 1, sz.bh - 1); */
-    /*     DrawRectangle(border_wand, 0, 0, sz.bw - 1, sz.ch - 1); */
-    /*     DrawRectangle(border_wand, 0, sz.ch - sz.bh, sz.cw - 1, sz.ch - 1); */
-    /*     DrawRectangle(border_wand, sz.cw - sz.bw, 0, sz.cw - 1, sz.ch - 1); */
-    /*     MagickDrawImage(lctx->wand, border_wand); */
-    /*     DestroyPixelWand(border_color); */
-    /*     DestroyDrawingWand(border_wand); */
-    /* } */
+    if (sz.bw > 0.0 || sz.bh > 0.0) {
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "draw border");
+
+        PixelWand *border_color;
+        border_color = NewPixelWand();
+        PixelSetRed(border_color, sz.cc.r / 255.0);
+        PixelSetGreen(border_color, sz.cc.g / 255.0);
+        PixelSetBlue(border_color, sz.cc.b / 255.0);
+        /* PixelSetOpacity(border_color, sz.cc.a / 255.0); */
+
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "bw %lf", sz.bw);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "bh %lf", sz.bh);
+
+        status = MagickBorderImage(lctx->wand, border_color, sz.bw, sz.bh);
+        DestroyPixelWand(border_color);
+
+        if (status == MagickFail) {
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                          "MagickBorderImage(%lf, %lf) failed",
+                          sz.bw, sz.bh);
+            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            return APR_EGENERAL;
+        }
+    }
 
     gettimeofday(&t23, NULL);
 
