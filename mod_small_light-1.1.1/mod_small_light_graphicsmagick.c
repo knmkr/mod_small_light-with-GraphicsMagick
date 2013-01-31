@@ -348,10 +348,23 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         }
     }
 
-    // set file format like jpeg, png,... default is jpeg
+    // set file format like jpeg, png. default is jpeg
+    // TODO: only MagickSetFormat ?
     char *of = (char *)apr_table_get(ctx->prm, "of");
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetFormat(wand, '%s')", of);
-    MagickSetFormat(lctx->wand, of);
+
+    if (strcmp(of, "jpeg") == 0 || strcmp(of, "png") == 0) {
+        MagickSetFormat(lctx->wand, of);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetFormat(wand, '%s')", of);
+
+        if (status == MagickFail) {
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "MagickSetFormat(wand, %s) failed", of);
+            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            return APR_EGENERAL;
+        }
+    } else {
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "unexpected of %s", of);
+    }
 
     // get small_lighted image as binary.
     unsigned char *canvas_buff;
