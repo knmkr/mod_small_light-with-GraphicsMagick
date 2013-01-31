@@ -195,7 +195,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         PixelSetRed(canvas_color, sz.cc.r / 255.0);
         PixelSetGreen(canvas_color, sz.cc.g / 255.0);
         PixelSetBlue(canvas_color, sz.cc.b / 255.0);
-        /* PixelSetOpacity(canvas_color, sz.cc.a / 255.0); */
+        PixelSetOpacity(canvas_color, sz.cc.a / 255.0);
 
         double canvas_border_width;
         double canvas_border_height;
@@ -299,7 +299,7 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         PixelSetRed(border_color, sz.cc.r / 255.0);
         PixelSetGreen(border_color, sz.cc.g / 255.0);
         PixelSetBlue(border_color, sz.cc.b / 255.0);
-        /* PixelSetOpacity(border_color, sz.cc.a / 255.0); */
+        PixelSetOpacity(border_color, sz.cc.a / 255.0);
 
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "bw %lf", sz.bw);
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "bh %lf", sz.bh);
