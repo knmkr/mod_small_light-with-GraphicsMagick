@@ -296,10 +296,10 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
 
         PixelWand *border_color;
         border_color = NewPixelWand();
-        PixelSetRed(border_color, sz.cc.r / 255.0);
-        PixelSetGreen(border_color, sz.cc.g / 255.0);
-        PixelSetBlue(border_color, sz.cc.b / 255.0);
-        PixelSetOpacity(border_color, sz.cc.a / 255.0);
+        PixelSetRed(border_color, sz.bc.r / 255.0);
+        PixelSetGreen(border_color, sz.bc.g / 255.0);
+        PixelSetBlue(border_color, sz.bc.b / 255.0);
+        PixelSetOpacity(border_color, sz.bc.a / 255.0);
 
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "bw %lf", sz.bw);
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "bh %lf", sz.bh);
