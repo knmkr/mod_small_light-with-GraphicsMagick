@@ -177,12 +177,11 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "no scale");
     }
 
-    // create canvas (background) then draw image on it.
+    // create canvas (background-frame)
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.r: %hx", sz.cc.r);
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.g: %hx", sz.cc.g);
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.b: %hx", sz.cc.b);
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.a: %hx", sz.cc.a);
-
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.r: %f", sz.cc.r / 255.0);
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.g: %f", sz.cc.g / 255.0);
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "sz.cc.b: %f", sz.cc.b / 255.0);
@@ -191,49 +190,49 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     if (sz.cw > 0.0 && sz.ch > 0.0) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "in create canvas");
 
-        MagickWand *canvas_wand = NewMagickWand();
-        status = MagickSetSize(canvas_wand, (long)sz.cw, (long)sz.ch);
-        if (status == MagickFail) {
-            small_light_filter_graphicsmagick_output_data_fini(ctx);
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
-                          "MagickSetSizes() failed");
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
-            return APR_EGENERAL;
-        }
-
-        //
-        /* MagickWand *canvas_wand = NewMagickWand(); */
-        PixelWand *canvas_color = NewPixelWand();
-        /* PixelSetColor(canvas_color, "#000000"); */
+        PixelWand *canvas_color;
+        canvas_color = NewPixelWand();
         PixelSetRed(canvas_color, sz.cc.r / 255.0);
         PixelSetGreen(canvas_color, sz.cc.g / 255.0);
         PixelSetBlue(canvas_color, sz.cc.b / 255.0);
         /* PixelSetOpacity(canvas_color, sz.cc.a / 255.0); */
 
-        /* status = MagickSetImageBackgroundColor(canvas_wand, canvas_color); */
-        /* if (status == MagickFail) { */
-        /*     small_light_filter_graphicsmagick_output_data_fini(ctx); */
-        /*     ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, */
-        /*                   "MagickSetImageBackgroundColor() failed"); */
-        /*     r->status = HTTP_INTERNAL_SERVER_ERROR; */
-        /*     return APR_EGENERAL; */
-        /* } */
+        double canvas_border_width;
+        double canvas_border_height;
 
-        status = MagickRotateImage(lctx->wand, canvas_color, 30);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "cw %lf", sz.cw);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "ch %lf", sz.ch);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "dw %lf", sz.dw);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "dh %lf", sz.dh);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "iw %lf", iw);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "ih %lf", ih);
 
-        /* status = MagickCompositeImage(canvas_wand, lctx->wand, AtopCompositeOp, sz.dx, sz.dy); */
+        canvas_border_width = (sz.cw - sz.dw) / 2;
+        canvas_border_height = (sz.ch - sz.dh) / 2;
+
+        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                      "MagickBorderImage(%lf, %lf)",
+                      canvas_border_width, canvas_border_height);
+
+        if (canvas_border_width > 0 && canvas_border_height > 0)
+          {
+            status = MagickBorderImage(lctx->wand, canvas_color,
+                                       canvas_border_width, canvas_border_height);
+          }
+        else
+          {
+            ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "invalid canvas size");
+          }
         DestroyPixelWand(canvas_color);
+
         if (status == MagickFail) {
             small_light_filter_graphicsmagick_output_data_fini(ctx);
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
-                          "MagickCompositeImage() failed");
+                          "MagickBorderImage(%lf, %lf) failed",
+                          canvas_border_width, canvas_border_height);
             r->status = HTTP_INTERNAL_SERVER_ERROR;
             return APR_EGENERAL;
         }
-
-        /* DestroyMagickWand(lctx->wand); */
-        DestroyMagickWand(canvas_wand);
-        /* lctx->wand = canvas_wand; */
     }
 
     /* // rotate image */
