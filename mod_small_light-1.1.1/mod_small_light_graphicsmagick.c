@@ -210,19 +210,17 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         canvas_border_width = (sz.cw - sz.dw) / 2;
         canvas_border_height = (sz.ch - sz.dh) / 2;
 
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
                       "MagickBorderImage(%lf, %lf)",
                       canvas_border_width, canvas_border_height);
 
-        if (canvas_border_width > 0 && canvas_border_height > 0)
-          {
+        if (canvas_border_width > 0.0 && canvas_border_height > 0.0) {
             status = MagickBorderImage(lctx->wand, canvas_color,
                                        canvas_border_width, canvas_border_height);
-          }
-        else
-          {
+        }
+        else {
             ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "invalid canvas size");
-          }
+        }
         DestroyPixelWand(canvas_color);
 
         if (status == MagickFail) {
@@ -319,20 +317,40 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
 
     gettimeofday(&t23, NULL);
 
-    // set params.
-    // TODO: JPEGCompression??
-    // * MagickSetImageCompression(MagickWand *wand, const CompressionType compression);
-    /* double q = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "q")); */
-    /* if (q > 0.0) { */
-    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, */
-    /*         "MagickSetImageComressionQualty(wand, %f)", q); */
-    /*     MagickSetImageCompressionQuality(lctx->wand, q); */
-    /* } */
 
-    // set file format like jpg, bmp,...
-    char *of = (char *)apr_table_get(ctx->prm, "of");
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetFormat(wand, '%s')", of);
-    MagickSetFormat(lctx->wand, of);
+    // set compression quality. default quality is 75 (0 <= q <= 100).
+    double q = small_light_parse_double(r, (char *)apr_table_get(ctx->prm, "q"));
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "q %lf", q);
+    if (q >= 0.0 && q <= 100.0) {
+        char *infile_format = (char *)MagickGetImageFormat(lctx->wand);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "infile_format %s", infile_format);
+
+        /* int infile_q; */
+        /* infile_q = MagickGetImageCompression(lctx->wand); */
+        /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "infile_q %d", infile_q); */
+
+        if (strcmp(infile_format, "JPEG") == 0) {
+            status = MagickSetCompressionQuality(lctx->wand, q);
+        } else if (strcmp(infile_format, "PNG") == 0) {
+            status = MagickSetCompressionQuality(lctx->wand, q);
+        } else {
+            ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
+                          "unexpected infile_format %s", infile_format);
+        }
+
+        if (status == MagickFail) {
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                          "MagickSetComressionQualty(wand, %f)) failed", q);
+            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            return APR_EGENERAL;
+        }
+    }
+
+    /* // set file format like jpg, bmp,... */
+    /* char *of = (char *)apr_table_get(ctx->prm, "of"); */
+    /* ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetFormat(wand, '%s')", of); */
+    /* MagickSetFormat(lctx->wand, of); */
 
     // get small_lighted image as binary.
     unsigned char *canvas_buff;
@@ -353,10 +371,10 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     // insert eos to bucket brigade.
     APR_BRIGADE_INSERT_TAIL(ctx->bb, apr_bucket_eos_create(ctx->bb->bucket_alloc));
 
-    // set correct Content-Type and Content-Length.
-    char *cont_type = apr_psprintf(r->pool, "image/%s", of);
-    ap_set_content_type(r, cont_type);
-    ap_set_content_length(r, sled_image_size);
+    /* // set correct Content-Type and Content-Length. */
+    /* char *cont_type = apr_psprintf(r->pool, "image/%s", of); */
+    /* ap_set_content_type(r, cont_type); */
+    /* ap_set_content_length(r, sled_image_size); */
 
     // end.
     gettimeofday(&t3, NULL);
