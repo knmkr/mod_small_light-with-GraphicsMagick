@@ -268,9 +268,33 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     }
 
 
+    // NOTE: MagickTintImage() is not supported in GraphicsMagick Wand...
+
+    /* // colorize */
+    /* if (sz.cc.r && sz.cc.g && sz.cc.b) { */
+    /*     PixelWand *canvas_color = NewPixelWand(); */
+    /*     PixelSetRed(canvas_color, sz.cc.r / 255.0); */
+    /*     PixelSetGreen(canvas_color, sz.cc.g / 255.0); */
+    /*     PixelSetBlue(canvas_color, sz.cc.b / 255.0); */
+
+    /*     PixelWand *canvas_opacity = NewPixelWand(); */
+    /*     PixelSetOpacity(canvas_opacity, sz.cc.a / 255.0); */
+
+    /*     status = MagickColorizeImage(lctx->wand, canvas_color, canvas_opacity); */
+
+    /*     if (status == MagickFail) { */
+    /*         small_light_filter_graphicsmagick_output_data_fini(ctx); */
+    /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, */
+    /*                       "MagickColorizeImage() failed"); */
+    /*         r->status = HTTP_INTERNAL_SERVER_ERROR; */
+    /*         return APR_EGENERAL; */
+    /*     } */
+    /* } */
+
+
     // effects.
     // NOTE: because of bug with parsing, enable parameter is sigma only. other parameters are set to defalut.
-    // TODO: enable other parameters like blur=1;3 (r=1, sigma=3)
+    // TODO: enable other parameters like blur=1:3 (r=1, sigma=3)
     char *unsharp = (char *)apr_table_get(ctx->prm, "unsharp");
     if (unsharp) {
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
