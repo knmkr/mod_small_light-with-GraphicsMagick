@@ -212,27 +212,29 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         DestroyPixelWand(canvas_color);
     }
 
-    /* // rotate image */
-    /* if (sz.cw > 0.0 && sz.ch > 0.0) { */
-    /*     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "in rotate image"); */
 
-    /*     PixelWand *canvas_color = NewPixelWand(); */
-    /*     PixelSetRed(canvas_color, sz.cc.r / 255.0); */
-    /*     PixelSetGreen(canvas_color, sz.cc.g / 255.0); */
-    /*     PixelSetBlue(canvas_color, sz.cc.b / 255.0); */
+    // additional effects
+    // rotate image
+    char *rotate = (char *)apr_table_get(ctx->prm, "rotate");
+    if (rotate) {
+        if ((float)atof(rotate) > 0.0 && (float)atof(rotate) < 360.0) {
+            PixelWand *canvas_color = NewPixelWand();
+            PixelSetRed(canvas_color, sz.cc.r / 255.0);
+            PixelSetGreen(canvas_color, sz.cc.g / 255.0);
+            PixelSetBlue(canvas_color, sz.cc.b / 255.0);
 
-    /*     // */
-    /*     status = MagickRotateImage(lctx->wand, canvas_color, 30); */
-    /*     DestroyPixelWand(canvas_color); */
+            status = MagickRotateImage(lctx->wand, canvas_color, (float)atof(rotate));
+            DestroyPixelWand(canvas_color);
 
-    /*     if (status == MagickFail) { */
-    /*         small_light_filter_graphicsmagick_output_data_fini(ctx); */
-    /*         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, */
-    /*                       "MagickRotateImage() failed"); */
-    /*         r->status = HTTP_INTERNAL_SERVER_ERROR; */
-    /*         return APR_EGENERAL; */
-    /*     } */
-    /* } */
+            if (status == MagickFail) {
+                small_light_filter_graphicsmagick_output_data_fini(ctx);
+                ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                              "MagickRotateImage() failed");
+                r->status = HTTP_INTERNAL_SERVER_ERROR;
+                return APR_EGENERAL;
+            }
+        }
+    }
 
 
     // effects.

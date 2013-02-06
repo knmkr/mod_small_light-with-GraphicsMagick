@@ -110,9 +110,13 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
     request_rec *r = f->r;
     small_light_module_ctx_t *ctx = f->ctx;
 
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "in small_light_filter");
+
     // do nothing if bucket brigade is empty.
-    if (APR_BRIGADE_EMPTY(bb))
+    if (APR_BRIGADE_EMPTY(bb)) {
         return APR_SUCCESS;
+    }
+
 
     // initialize context at first time.
     if (!ctx) {

@@ -14,7 +14,9 @@ syntax: glob
 Makefile
 config.status
 *.jpg
+*.png
 autom4te.cache
 GPATH
 GRTAGS
 GTAGS
+mod_small_light-1.1.1_for_pixiv_demo
