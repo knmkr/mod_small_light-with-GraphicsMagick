@@ -253,6 +253,21 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     }
 
 
+    //
+    char *contrast = (char *)apr_table_get(ctx->prm, "contrast");
+    if (contrast) {
+        status = MagickContrastImage(lctx->wand, (float)atof(contrast));
+
+        if (status == MagickFail) {
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                          "MagickContrastImage() failed");
+            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            return APR_EGENERAL;
+        }
+    }
+
+
     // effects.
     // NOTE: because of bug with parsing, enable parameter is sigma only. other parameters are set to defalut.
     // TODO: enable other parameters like blur=1;3 (r=1, sigma=3)
