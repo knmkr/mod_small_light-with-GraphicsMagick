@@ -236,6 +236,22 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
         }
     }
 
+    //
+    char *oilpaint = (char *)apr_table_get(ctx->prm, "oilpaint");
+    if (oilpaint) {
+        if ((float)atof(oilpaint) > 0.0) {
+            status = MagickOilPaintImage(lctx->wand, (float)atof(oilpaint));
+
+            if (status == MagickFail) {
+                small_light_filter_graphicsmagick_output_data_fini(ctx);
+                ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                              "MagickOilPaintImage() failed");
+                r->status = HTTP_INTERNAL_SERVER_ERROR;
+                return APR_EGENERAL;
+            }
+        }
+    }
+
 
     // effects.
     // NOTE: because of bug with parsing, enable parameter is sigma only. other parameters are set to defalut.
