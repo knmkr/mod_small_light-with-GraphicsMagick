@@ -106,20 +106,21 @@ apr_status_t small_light_filter_graphicsmagick_output_data(
     small_light_calc_image_size(&sz, r, ctx, 10000.0, 10000.0);  // ?
 
     // init wand (Allocate Wand handle)
-    // TODO: get path of client (=apache)
-    InitializeMagick("");  //  InitializeMagick(*argv);
-
+    InitializeMagick("");
     lctx->wand = NewMagickWand();
 
     // set jpeg hint to wand.
     if (sz.jpeghint_flg != 0) {
-        char *jpeg_size_opt = (char *)apr_psprintf(r->pool, "%dx%d", (int)sz.dw, (int)sz.dh);
-        MagickSetSize(lctx->wand, (long)sz.dw, (long)sz.dh);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetOption(jpeg:size, %s)", jpeg_size_opt);
+        MagickSetSize(lctx->wand, (unsigned long)sz.cw, (unsigned long)sz.ch);
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "MagickSetSize(%lu %lu)",
+                      (unsigned long)sz.cw, (unsigned long)sz.ch);
 
-        double wand_jpg_w = (double)MagickGetImageWidth(lctx->wand);
-        double wand_jpg_h = (double)MagickGetImageHeight(lctx->wand);
-        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "size_wand_jpg: %fx%f", wand_jpg_w, wand_jpg_h);
+        if (status == MagickFail) {
+            small_light_filter_graphicsmagick_output_data_fini(ctx);
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "MagickSetSize() failed");
+            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            return APR_EGENERAL;
+        }
     }
 
     // load image from memory (not file).
