@@ -8,9 +8,9 @@ mod_small_light_ is an Apache-module for dynamic image transformation, e.g. thum
 
 It supports only ImageMagick and Imlib2 as backends of image transformation.
 
-So, here we added `GraphicsMagick`_ as its backend, because it runs faster than ImageMagick.
+So, here we additionally added `GraphicsMagick`_ as its backend, because it runs faster than ImageMagick.
 
-As a result **mod_small_light with GraphicsMagick outperformed one with ImageMagick in requests-per-second.**.
+As a result **mod_small_light-with-GraphicsMagick outperformed one with ImageMagick in requests-per-second to generate thumbnails**.
 
 .. _GraphicsMagick: http://www.graphicsmagick.org/
 
@@ -59,10 +59,6 @@ Moreover we added some effects like rotation, oil-paint and contrast.
       oilpaint effect filter that simulates an oil painting. set radius of the circular neighborhood like "oilpaint=3" [number]
       contrast enhance/ contrast of image. set "contrast=1" or "contrast=-1" [number]
       ======== ===========================================================
-
-* LICENSE
-
-    * MIT License
 
 
 * ACKNOWLEDGEMENT
