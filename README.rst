@@ -23,27 +23,28 @@ Moreover we added some effects like rotation, oil-paint effect and contrast cont
 
 * INSTALL
 
-    #. Install apache2, imlib2, ImageMagick and GraphicsMagick.
+  #. Install apache2, imlib2, ImageMagick and GraphicsMagick.
 
-    #. Install required Apache-modules. ::
+  #. Install required Apache-modules. ::
 
-        $ a2enmod rewrite proxy proxy_http
-
-    #. Run configure script. ::
-
-        $ ./configure --with-apxs=/path/to/apache2/bin/apxs \
-        --with-imlib2-config=/path/to/bin/imlib2-config \
-        --without-Wand \
-        --with-GraphicsMagickWand-config=/path/to/bin/GraphicsMagickWand-config
-
-        # Notice: GraphicsMagick cannot work with original ImageMagick.
-        #         So set --without-Wand and --with-GraphicsMagickWand.
+      $ a2enmod rewrite proxy proxy_http
 
 
-    #. Compile & Install::
+  #. Run configure script. ::
 
-        $ make
-        $ sudo make install
+      $ ./configure --with-apxs=/path/to/apache2/bin/apxs \
+      --with-imlib2-config=/path/to/bin/imlib2-config \
+      --without-Wand \
+      --with-GraphicsMagickWand-config=/path/to/bin/GraphicsMagickWand-config
+
+      # Notice: GraphicsMagick cannot work with original ImageMagick.
+      #         So set --without-Wand and --with-GraphicsMagickWand.
+
+
+  #. Compile & Install::
+
+      $ make
+      $ sudo make install
 
 
 * HOW TO USE
@@ -59,26 +60,26 @@ Moreover we added some effects like rotation, oil-paint effect and contrast cont
            SetOutputFilter SMALL_LIGHT
          </LocationMatch>
 
+
   * The pattern string specifies as KEY=VALUE format in small_light() is described described here: PatternString_
 
     * **To use GraphicsMagick, set `e=graphicsmagick`.**
 
     * Parameters for the additional effects are:
 
-
-        ======== ===========================================================
-        KEY      VALUE
-        ======== ===========================================================
-        rotate   rotate image (0-360 degrees). set like "rotate=90" [number]
-        oilpaint effect filter that simulates an oil painting. set radius of the circular neighborhood like "oilpaint=3" [number]
-        contrast enhance/ contrast of image. set "contrast=1" or "contrast=-1" [number]
-        ======== ===========================================================
+      ======== ===========================================================
+      KEY      VALUE
+      ======== ===========================================================
+      rotate   rotate image (0-360 degrees). set like "rotate=90" [number]
+      oilpaint effect filter that simulates an oil painting. set radius of the circular neighborhood like "oilpaint=3" [number]
+      contrast enhance/ contrast of image. set "contrast=1" or "contrast=-1" [number]
+      ======== ===========================================================
 
 .. _PatternString: http://code.google.com/p/smalllight/wiki/PatternString
 
 
 * ACKNOWLEDGEMENT
 
-    * Thanks for developers of mod_small_light_.
+  * Thanks for developers of mod_small_light_.
 
-    * Thanks for pixiv Inc. and @cubicdaiya. This work had been done during an internship at pixiv Inc.
+  * Thanks for pixiv Inc. and @cubicdaiya. This work had been done during an internship at pixiv Inc.
