@@ -2,7 +2,7 @@
 mod_small_light-with-GraphicskMagick
 ====================================
 
-mod_small_light_ is an Apache-module for dynamic image transformation, e.g. dynamic thumbnail generation, and it originally hosted on google-code.
+mod_small_light_ is an Apache-module for dynamic image transformation, e.g. thumbnail generation, and it is originally hosted on google-code.
 
 .. _mod_small_light: http://code.google.com/p/smalllight/
 
@@ -80,6 +80,6 @@ Moreover we added some effects like rotation, oil-paint effect and contrast cont
 
 * ACKNOWLEDGEMENT
 
-  * Thanks for developers of mod_small_light_.
+  * Thanks for the developers of mod_small_light_.
 
   * Thanks for pixiv Inc. and @cubicdaiya. This work had been done during an internship at pixiv Inc.
