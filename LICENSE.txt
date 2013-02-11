@@ -22,8 +22,9 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-Additionally `mod_small_light-with-GraphicskMagick` is an extention of
-`mod_small_light` and contains sources of `mod_small_light`.
+=======================================================================
+In addition, this software is an extention of `mod_small_light`,
+so that this software contains sources of `mod_small_light`.
 `mod_small_light` is also under the MIT License:
 
 Copyright (c) 1996-2011 livedoor Co.,Ltd.

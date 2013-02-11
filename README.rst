@@ -1,20 +1,18 @@
-======================================
-mod_small_light (with GraphicskMagick)
-======================================
+====================================
+mod_small_light-with-GraphicskMagick
+====================================
 
-mod_small_light_ is an Apache-module for dynamic image transformation, e.g. thumbnail generation. (originally hosted on google-code)
+mod_small_light_ is an Apache-module for dynamic image transformation, e.g. dynamic thumbnail generation, and it originally hosted on google-code.
 
 .. _mod_small_light: http://code.google.com/p/smalllight/
 
-It supports only ImageMagick and Imlib2 as backends of image transformation.
+Here we extend mod_small_light-1.1.1 as `mod_small_light-with-GraphicskMagick`, so that it can use GraphicsMagick_ as its another backend of image transformation. (mod_small_light originally supports ImageMagick and Imlib2.)
 
-So, here we additionally added `GraphicsMagick`_ as its backend, because it runs faster than ImageMagick.
-
-As a result **mod_small_light-with-GraphicsMagick outperformed one with ImageMagick in requests-per-second to generate thumbnails**.
+As a result, **mod_small_light-with-GraphicsMagick outperformed one with ImageMagick in requests-per-second to generate thumbnails**.
 
 .. _GraphicsMagick: http://www.graphicsmagick.org/
 
-Moreover we added some effects like rotation, oil-paint and contrast.
+Moreover we added some effects like rotation, oil-paint effect and contrast control.
 
 
 * INSTALL
@@ -49,7 +47,9 @@ Moreover we added some effects like rotation, oil-paint and contrast.
       .. _here: http://code.google.com/p/smalllight/wiki/Install
 
 
-    * Notice: additional parameters are
+    * To use GraphicsMagick, set `e=graphicsmagick`.
+
+    * Parameters for the additional effects are:
 
 
       ======== ===========================================================
@@ -62,5 +62,7 @@ Moreover we added some effects like rotation, oil-paint and contrast.
 
 
 * ACKNOWLEDGEMENT
+
+    * Thanks for developers of mod_small_light_.
 
     * Thanks for pixiv Inc. and @cubicdaiya. This work had been done during an internship at pixiv Inc.
