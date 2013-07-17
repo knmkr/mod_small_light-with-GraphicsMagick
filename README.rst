@@ -1,5 +1,5 @@
 ====================================
-mod_small_light-with-GraphicskMagick
+mod_small_light-with-GraphicsMagick
 ====================================
 
 mod_small_light_ is an Apache-module for dynamic image transformation, e.g. thumbnail generation, and it is originally hosted on google-code.
